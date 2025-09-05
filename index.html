@@ -3,317 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Graphics Hub</title>
+    <title>Interactive Graphics & Visual Computing</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            overscroll-behavior: none;
-        }
-        .label { @apply text-sm font-medium text-gray-500; }
-        .value { @apply text-lg font-semibold text-gray-900 tabular-nums; }
-        .vector-a-color { color: #3b82f6; }
-        .vector-b-color { color: #ec4899; }
-        .result-color { color: #8b5cf6; }
-        #render-canvas, #screen-coord-canvas, #gradient-canvas, #geometric-rgb-canvas, #alpha-canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-            cursor: crosshair;
-        }
-        #rgb-color-preview {
-            width: 100%;
-            height: 100%;
-            transition: background-color 0.1s ease-in-out;
+            background-color: #f8f9fa;
         }
     </style>
 </head>
-<body class="bg-gray-100 antialiased">
+<body class="text-gray-800">
 
-    <!-- Main Hub Content (Initially Visible) -->
-    <div id="hub-container">
-        <div class="container mx-auto px-4 py-12">
-            <!-- Page Header -->
-            <header class="text-center mb-12">
-                <h1 class="text-4xl md:text-5xl font-bold text-gray-800">Interactive Graphics & Visual Computing</h1>
-                <p class="text-lg text-gray-600 mt-2">A collection of interactive modules to help visualize complex topics.</p>
-            </header>
+    <div class="container mx-auto px-6 py-12">
+        
+        <!-- Header Section -->
+        <header class="text-left mb-12">
+            <h1 class="text-4xl font-bold text-gray-900">Interactive Graphics & Visual Computing</h1>
+            <p class="text-lg text-gray-600 mt-2">A collection of interactive modules to help visualize complex topics.</p>
+        </header>
 
-            <!-- Grid for the interactive module cards -->
-            <main>
-                <!-- New Category Heading -->
-                <div class="mb-12">
-                    <h2 class="text-3xl font-bold text-gray-800 border-b-2 border-gray-200 pb-3">Python Graphics Basics</h2>
-                </div>
-
+        <!-- Main Content -->
+        <main>
+            <!-- Graphics Basics Section -->
+            <section>
+                <h2 class="text-2xl font-semibold mb-6 text-gray-800 border-b pb-2 border-gray-200">Graphics Basics</h2>
+                
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                     
-                    <!-- Card 1: Vector Addition -->
-                    <div class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-2 transition-transform duration-300 ease-in-out"><div class="p-6 flex flex-col h-full"><h2 class="text-2xl font-bold text-gray-900 mb-2">Visualizing Vector Addition</h2><p class="text-gray-700 mb-6 flex-grow">An interactive 3D visualization of how two vectors are added together. Manipulate vector components and see the result in real-time.</p><button id="launch-vector-module" class="mt-auto inline-block w-full text-center bg-blue-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors duration-300">Launch Interactive</button></div></div>
-
-                    <!-- Card 2: Screen Coordinates -->
-                    <div class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-2 transition-transform duration-300 ease-in-out"><div class="p-6 flex flex-col h-full"><h2 class="text-2xl font-bold text-gray-900 mb-2">Screen Coordinate System</h2><p class="text-gray-700 mb-6 flex-grow">Explore the 2D coordinate system used by your screen. See how X and Y values change with the origin at the top-left.</p><button id="launch-screen-coord-module" class="mt-auto inline-block w-full text-center bg-green-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-green-600 transition-colors duration-300">Launch Interactive</button></div></div>
-
-                    <!-- Card 3: RGB Color Model -->
-                    <div class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-2 transition-transform duration-300 ease-in-out"><div class="p-6 flex flex-col h-full"><h2 class="text-2xl font-bold text-gray-900 mb-2">RGB Color Model</h2><p class="text-gray-700 mb-6 flex-grow">Mix Red, Green, and Blue light to create any color on a digital screen. See the RGB and Hex codes for your creation.</p><button id="launch-rgb-module" class="mt-auto inline-block w-full text-center bg-red-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-red-600 transition-colors duration-300">Launch Interactive</button></div></div>
+                    <!-- Module 1: Screen Coordinate System -->
+                    <div class="bg-white rounded-lg shadow-md p-6 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xl font-bold mb-2">Screen Coordinate System</h3>
+                            <p class="text-gray-600 mb-6">Explore the 2D coordinate system used by your screen. See how X and Y values change with the origin at the top-left.</p>
+                        </div>
+                        <a href="test.html" class="w-full text-center bg-green-500 text-white font-semibold py-3 rounded-lg hover:bg-green-600 transition-colors duration-300">
+                            Launch Interactive
+                        </a>
+                    </div>
                     
-                    <!-- Card 4: Color Gradient -->
-                    <div class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-2 transition-transform duration-300 ease-in-out"><div class="p-6 flex flex-col h-full"><h2 class="text-2xl font-bold text-gray-900 mb-2">Color Gradient</h2><p class="text-gray-700 mb-6 flex-grow">Hover over a programmatically generated gradient to see how a pixel's color is tied to its (X, Y) coordinate.</p><button id="launch-gradient-module" class="mt-auto inline-block w-full text-center bg-yellow-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-yellow-600 transition-colors duration-300">Launch Interactive</button></div></div>
+                    <!-- Module 2: RGB Color Model -->
+                    <div class="bg-white rounded-lg shadow-md p-6 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xl font-bold mb-2">RGB Color Model</h3>
+                            <p class="text-gray-600 mb-6">Mix Red, Green, and Blue light to create any color on a digital screen. See the RGB and Hex codes for your creation.</p>
+                        </div>
+                        <a href="#" class="w-full text-center bg-red-500 text-white font-semibold py-3 rounded-lg hover:bg-red-600 transition-colors duration-300">
+                            Launch Interactive
+                        </a>
+                    </div>
+
+                    <!-- Module 3: Color Gradient -->
+                    <div class="bg-white rounded-lg shadow-md p-6 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xl font-bold mb-2">Color Gradient</h3>
+                            <p class="text-gray-600 mb-6">Hover over a programmatically generated gradient to see how a pixel's color is tied to its (X, Y) coordinate.</p>
+                        </div>
+                        <a href="#" class="w-full text-center bg-yellow-500 text-white font-semibold py-3 rounded-lg hover:bg-yellow-600 transition-colors duration-300">
+                            Launch Interactive
+                        </a>
+                    </div>
+
+                    <!-- Module 4: Geometric RGB -->
+                    <div class="bg-white rounded-lg shadow-md p-6 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xl font-bold mb-2">Geometric RGB</h3>
+                            <p class="text-gray-600 mb-6">Explore the RGB color model as a 3D cube, where each point in space represents a unique color.</p>
+                        </div>
+                        <a href="#" class="w-full text-center bg-purple-500 text-white font-semibold py-3 rounded-lg hover:bg-purple-600 transition-colors duration-300">
+                            Launch Interactive
+                        </a>
+                    </div>
                     
-                    <!-- Card 5: Geometric RGB -->
-                    <div class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-2 transition-transform duration-300 ease-in-out"><div class="p-6 flex flex-col h-full"><h2 class="text-2xl font-bold text-gray-900 mb-2">Geometric RGB</h2><p class="text-gray-700 mb-6 flex-grow">Explore the RGB color model as a 3D cube, where each point in space represents a unique color.</p><button id="launch-geometric-rgb-module" class="mt-auto inline-block w-full text-center bg-purple-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-purple-600 transition-colors duration-300">Launch Interactive</button></div></div>
-
-                    <!-- Card 6: Alpha & Transparency -->
-                    <div class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-2 transition-transform duration-300 ease-in-out"><div class="p-6 flex flex-col h-full"><h2 class="text-2xl font-bold text-gray-900 mb-2">Alpha & Transparency</h2><p class="text-gray-700 mb-6 flex-grow">Control the opacity of an object using the Alpha channel and see how it blends with the background.</p><button id="launch-alpha-module" class="mt-auto inline-block w-full text-center bg-gray-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors duration-300">Launch Interactive</button></div></div>
-
+                    <!-- Module 5: Alpha & Transparency -->
+                    <div class="bg-white rounded-lg shadow-md p-6 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xl font-bold mb-2">Alpha & Transparency</h3>
+                            <p class="text-gray-600 mb-6">Control the opacity of an object using the Alpha channel and see how it blends with the background.</p>
+                        </div>
+                        <a href="#" class="w-full text-center bg-slate-500 text-white font-semibold py-3 rounded-lg hover:bg-slate-600 transition-colors duration-300">
+                            Launch Interactive
+                        </a>
+                    </div>
                 </div>
-            </main>
+            </section>
 
-            <footer class="text-center mt-16 text-gray-500"><p>Built to make learning visual and fun.</p></footer>
-        </div>
+            <!-- Image Properties Section -->
+            <section class="mt-16">
+                 <h2 class="text-2xl font-semibold mb-6 text-gray-800 border-b pb-2 border-gray-200">Image Properties</h2>
+                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Module 6: Image Color Channels -->
+                    <div class="bg-white rounded-lg shadow-md p-6 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xl font-bold mb-2">Image Color Channels</h3>
+                            <p class="text-gray-600 mb-6">See how a colored image is split into its three primary color channels: Red, Green, and Blue.</p>
+                        </div>
+                        <a href="#" class="w-full text-center bg-cyan-500 text-white font-semibold py-3 rounded-lg hover:bg-cyan-600 transition-colors duration-300">
+                            Launch Interactive
+                        </a>
+                    </div>
+                 </div>
+            </section>
+        </main>
+
     </div>
 
-    <!-- Vector Addition Module (Initially Hidden) -->
-    <div id="vector-module-container" class="hidden">
-        <div class="flex flex-col lg:flex-row h-screen">
-            <div class="w-full lg:w-96 bg-white p-6 shadow-lg overflow-y-auto"><div class="space-y-6"><div><h1 class="text-2xl font-bold text-gray-900">Visualizing Vector Addition</h1><p class="text-gray-600 mt-1">Use the sliders to control two 3D vectors and see how they add together.</p></div><div class="space-y-4 p-4 border rounded-lg bg-blue-50 border-blue-200"><h2 class="text-xl font-bold vector-a-color">Vector A</h2><div><div class="flex justify-between items-center"><span class="label">X</span><span id="val-ax" class="value vector-a-color">2.0</span></div><input id="slider-ax" type="range" min="-5" max="5" value="2" step="0.1" class="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer"></div><div><div class="flex justify-between items-center"><span class="label">Y</span><span id="val-ay" class="value vector-a-color">3.0</span></div><input id="slider-ay" type="range" min="-5" max="5" value="3" step="0.1" class="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer"></div><div><div class="flex justify-between items-center"><span class="label">Z</span><span id="val-az" class="value vector-a-color">1.0</span></div><input id="slider-az" type="range" min="-5" max="5" value="1" step="0.1" class="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer"></div></div><div class="space-y-4 p-4 border rounded-lg bg-pink-50 border-pink-200"><h2 class="text-xl font-bold vector-b-color">Vector B</h2><div><div class="flex justify-between items-center"><span class="label">X</span><span id="val-bx" class="value vector-b-color">3.0</span></div><input id="slider-bx" type="range" min="-5" max="5" value="3" step="0.1" class="w-full h-2 bg-pink-200 rounded-lg appearance-none cursor-pointer"></div><div><div class="flex justify-between items-center"><span class="label">Y</span><span id="val-by" class="value vector-b-color">-2.0</span></div><input id="slider-by" type="range" min="-5" max="5" value="-2" step="0.1" class="w-full h-2 bg-pink-200 rounded-lg appearance-none cursor-pointer"></div><div><div class="flex justify-between items-center"><span class="label">Z</span><span id="val-bz" class="value vector-b-color">2.0</span></div><input id="slider-bz" type="range" min="-5" max="5" value="2" step="0.1" class="w-full h-2 bg-pink-200 rounded-lg appearance-none cursor-pointer"></div></div><div class="space-y-2 p-4 border rounded-lg bg-purple-50 border-purple-200"><h2 class="text-xl font-bold result-color">Result: A + B</h2><div id="result-text" class="text-center font-mono bg-purple-100 p-2 rounded"></div></div><button id="back-to-hub-from-vector" class="w-full text-center bg-gray-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors duration-300 mt-4">Back to Hub</button></div></div>
-            <div class="flex-1 h-64 lg:h-full bg-gray-800"><div id="canvas-container" class="w-full h-full"><canvas id="render-canvas"></canvas></div></div>
-        </div>
-    </div>
-
-    <!-- Screen Coordinate Module (Initially Hidden) -->
-    <div id="screen-coord-module-container" class="hidden">
-        <div class="flex flex-col lg:flex-row h-screen">
-            <div class="w-full lg:w-96 bg-white p-6 shadow-lg overflow-y-auto"><div class="space-y-6"><div><h1 class="text-2xl font-bold text-gray-900">Screen Coordinate System</h1><p class="text-gray-600 mt-1">In most 2D graphics systems, the origin (0, 0) is at the top-left corner. The X value increases to the right, and the Y value increases as you move down.</p></div><div class="p-4 border rounded-lg bg-green-50 border-green-200"><h2 class="text-xl font-bold text-green-700">Mouse Position</h2><p class="text-sm text-green-800">Move your mouse over the canvas to see the coordinates change.</p><div class="mt-4 text-center font-mono text-2xl bg-green-100 p-4 rounded-lg"><span class="text-gray-500">X:</span> <span id="coord-x" class="font-bold text-green-800 w-16 inline-block">0</span><span class="text-gray-500 ml-6">Y:</span> <span id="coord-y" class="font-bold text-green-800 w-16 inline-block">0</span></div></div><div class="p-4 border rounded-lg bg-gray-50 border-gray-200"><h2 class="text-xl font-bold text-gray-700">Canvas Resolution</h2><p class="text-sm text-gray-800">Adjust the slider to change the canvas's internal resolution. Notice how the coordinate values change faster at lower resolutions.</p><div class="mt-4"><div class="flex justify-between items-center"><span class="label">Resolution</span><span id="canvas-size-value" class="value text-gray-800">800 x 600</span></div><input id="canvas-size-slider" type="range" min="300" max="1200" value="800" step="10" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"></div></div><button id="back-to-hub-from-coord" class="w-full text-center bg-gray-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors duration-300 mt-4">Back to Hub</button></div></div>
-            <div class="flex-1 h-64 lg:h-full bg-gray-800"><div id="screen-coord-canvas-container" class="w-full h-full"><canvas id="screen-coord-canvas"></canvas></div></div>
-        </div>
-    </div>
-
-    <!-- RGB Color Module (Initially Hidden) -->
-    <div id="rgb-module-container" class="hidden">
-        <div class="flex flex-col lg:flex-row h-screen">
-            <div class="w-full lg:w-96 bg-white p-6 shadow-lg overflow-y-auto"><div class="space-y-6"><div><h1 class="text-2xl font-bold text-gray-900">RGB Color Model</h1><p class="text-gray-600 mt-1">Digital colors are created by additively mixing different amounts of Red, Green, and Blue light. Each component can have a value from 0 (off) to 255 (fully on).</p></div><div class="space-y-2 p-4 border rounded-lg bg-red-50 border-red-200"><div class="flex justify-between items-center"><h2 class="text-xl font-bold text-red-600">Red</h2><span id="rgb-r-value" class="value text-red-600">100</span></div><input id="rgb-r-slider" type="range" min="0" max="255" value="100" class="w-full h-2 bg-red-200 rounded-lg appearance-none cursor-pointer"></div><div class="space-y-2 p-4 border rounded-lg bg-green-50 border-green-200"><div class="flex justify-between items-center"><h2 class="text-xl font-bold text-green-600">Green</h2><span id="rgb-g-value" class="value text-green-600">150</span></div><input id="rgb-g-slider" type="range" min="0" max="255" value="150" class="w-full h-2 bg-green-200 rounded-lg appearance-none cursor-pointer"></div><div class="space-y-2 p-4 border rounded-lg bg-blue-50 border-blue-200"><div class="flex justify-between items-center"><h2 class="text-xl font-bold text-blue-600">Blue</h2><span id="rgb-b-value" class="value text-blue-600">200</span></div><input id="rgb-b-slider" type="range" min="0" max="255" value="200" class="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer"></div><div class="p-4 border rounded-lg bg-gray-100 text-center"><h2 class="text-xl font-bold text-gray-800">Resulting Color</h2><div id="rgb-value-text" class="font-mono text-lg mt-2">rgb(100, 150, 200)</div><div id="hex-value-text" class="font-mono text-lg">#6496C8</div></div><button id="back-to-hub-from-rgb" class="w-full text-center bg-gray-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors duration-300 mt-4">Back to Hub</button></div></div>
-            <div class="flex-1 h-64 lg:h-full bg-gray-800"><div id="rgb-color-preview"></div></div>
-        </div>
-    </div>
-
-    <!-- Color Gradient Module (Initially Hidden) -->
-    <div id="gradient-module-container" class="hidden">
-        <div class="flex flex-col lg:flex-row h-screen">
-            <div class="w-full lg:w-96 bg-white p-6 shadow-lg overflow-y-auto"><div class="space-y-6"><div><h1 class="text-2xl font-bold text-gray-900">Color Gradient</h1><p class="text-gray-600 mt-1">This image is generated pixel by pixel. Hover over the canvas to see the direct relationship between a pixel's coordinate and its color value.</p></div><div class="p-4 border rounded-lg bg-yellow-50 border-yellow-200"><h2 class="text-xl font-bold text-yellow-700">Pixel Data</h2><p class="text-sm text-yellow-800">Red is tied to the X-coord, Green to the Y-coord, and Blue is based on the distance from the top-left corner.</p><div class="mt-4 text-center font-mono text-xl bg-yellow-100 p-4 rounded-lg"><div><span class="text-gray-500">Coords:</span> (<span id="gradient-x" class="font-bold text-yellow-800 w-12 inline-block">...</span>,<span id="gradient-y" class="font-bold text-yellow-800 w-12 inline-block">...</span>)</div><div class="mt-2"><span class="text-gray-500">Color:</span> <span id="gradient-rgb" class="font-bold text-yellow-800">...</span></div></div></div><button id="back-to-hub-from-gradient" class="w-full text-center bg-gray-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors duration-300 mt-4">Back to Hub</button></div></div>
-            <div class="flex-1 h-64 lg:h-full bg-gray-800 flex items-center justify-center p-4"><canvas id="gradient-canvas" class="border border-gray-500" style="width: 300px; height: 290px;"></canvas></div>
-        </div>
-    </div>
-    
-    <!-- Geometric RGB Module (Initially Hidden) -->
-    <div id="geometric-rgb-module-container" class="hidden">
-        <div class="flex flex-col lg:flex-row h-screen">
-            <div class="w-full lg:w-96 bg-white p-6 shadow-lg overflow-y-auto">
-                <div class="space-y-6">
-                    <div>
-                        <h1 class="text-2xl font-bold text-gray-900">Geometric RGB</h1>
-                        <p class="text-gray-600 mt-1">The RGB color model can be visualized as a cube. The X, Y, and Z axes represent Red, Green, and Blue. Any color is a point inside this cube.</p>
-                    </div>
-                    <!-- Red Slider -->
-                    <div class="space-y-2 p-4 border rounded-lg bg-red-50 border-red-200">
-                        <div class="flex justify-between items-center"><h2 class="text-xl font-bold text-red-600">Red (X-axis)</h2><span id="geom-r-value" class="value text-red-600">128</span></div>
-                        <input id="geom-r-slider" type="range" min="0" max="255" value="128" class="w-full h-2 bg-red-200 rounded-lg appearance-none cursor-pointer">
-                    </div>
-                    <!-- Green Slider -->
-                    <div class="space-y-2 p-4 border rounded-lg bg-green-50 border-green-200">
-                        <div class="flex justify-between items-center"><h2 class="text-xl font-bold text-green-600">Green (Y-axis)</h2><span id="geom-g-value" class="value text-green-600">128</span></div>
-                        <input id="geom-g-slider" type="range" min="0" max="255" value="128" class="w-full h-2 bg-green-200 rounded-lg appearance-none cursor-pointer">
-                    </div>
-                    <!-- Blue Slider -->
-                    <div class="space-y-2 p-4 border rounded-lg bg-blue-50 border-blue-200">
-                        <div class="flex justify-between items-center"><h2 class="text-xl font-bold text-blue-600">Blue (Z-axis)</h2><span id="geom-b-value" class="value text-blue-600">128</span></div>
-                        <input id="geom-b-slider" type="range" min="0" max="255" value="128" class="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer">
-                    </div>
-                    <div class="text-center text-gray-500 pt-4"><p>Click and drag on the cube to rotate. Click on the cube's surface to select a color.</p></div>
-                    <button id="back-to-hub-from-geometric-rgb" class="w-full text-center bg-gray-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors duration-300 mt-4">Back to Hub</button>
-                </div>
-            </div>
-            <div class="flex-1 h-64 lg:h-full bg-gray-800"><div id="geometric-rgb-canvas-container" class="w-full h-full"><canvas id="geometric-rgb-canvas"></canvas></div></div>
-        </div>
-    </div>
-
-    <!-- Alpha & Transparency Module (Initially Hidden) -->
-    <div id="alpha-module-container" class="hidden">
-        <div class="flex flex-col lg:flex-row h-screen">
-            <div class="w-full lg:w-96 bg-white p-6 shadow-lg overflow-y-auto">
-                <div class="space-y-6">
-                    <div>
-                        <h1 class="text-2xl font-bold text-gray-900">Alpha & Transparency</h1>
-                        <p class="text-gray-600 mt-1">The Alpha channel controls the opacity of a color. A value of 1 is fully opaque, while 0 is fully transparent.</p>
-                    </div>
-                    <!-- Alpha Slider -->
-                    <div class="space-y-2 p-4 border rounded-lg bg-gray-50 border-gray-200">
-                        <div class="flex justify-between items-center"><h2 class="text-xl font-bold text-gray-600">Alpha</h2><span id="alpha-value" class="value text-gray-600">0.5</span></div>
-                        <input id="alpha-slider" type="range" min="0" max="1" value="0.5" step="0.01" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
-                    </div>
-                    <!-- Foreground Color -->
-                    <div class="p-4 border rounded-lg bg-blue-50 border-blue-200">
-                        <h2 class="text-xl font-bold text-blue-700">Foreground Color</h2>
-                        <input id="foreground-color" type="color" value="#3b82f6" class="w-full h-10 mt-2 rounded-lg">
-                    </div>
-                    <!-- Background Color -->
-                    <div class="p-4 border rounded-lg bg-yellow-50 border-yellow-200">
-                        <h2 class="text-xl font-bold text-yellow-700">Background Color</h2>
-                        <input id="background-color" type="color" value="#eab308" class="w-full h-10 mt-2 rounded-lg">
-                    </div>
-                     <!-- Result Display -->
-                     <div class="p-4 border rounded-lg bg-gray-100 text-center">
-                        <h2 class="text-xl font-bold text-gray-800">Foreground RGBA Value</h2>
-                        <div id="rgba-value-text" class="font-mono text-lg mt-2">rgba(59, 130, 246, 0.5)</div>
-                    </div>
-                    <button id="back-to-hub-from-alpha" class="w-full text-center bg-gray-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors duration-300 mt-4">Back to Hub</button>
-                </div>
-            </div>
-            <div class="flex-1 h-64 lg:h-full bg-gray-900 flex items-center justify-center p-4">
-                <canvas id="alpha-canvas" class="border border-gray-500"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- Three.js and OrbitControls -->
-    <script type="importmap">
-        { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }
-    </script>
-
-    <script type="module">
-        import * as THREE from 'three';
-        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-
-        // --- SHARED DOM Elements ---
-        const hubContainer = document.getElementById('hub-container');
-
-        // --- MODULE CONTAINERS ---
-        const moduleContainers = {
-            vector: document.getElementById('vector-module-container'),
-            screen: document.getElementById('screen-coord-module-container'),
-            rgb: document.getElementById('rgb-module-container'),
-            gradient: document.getElementById('gradient-module-container'),
-            geometricRgb: document.getElementById('geometric-rgb-module-container'),
-            alpha: document.getElementById('alpha-module-container')
-        };
-        
-        // --- INIT FLAGS (FIXED: Moved before usage) ---
-        const initFlags = { vector: false, screen: false, rgb: false, gradient: false, geometricRgb: false, alpha: false };
-
-        // --- LAUNCH BUTTONS ---
-        document.getElementById('launch-vector-module').addEventListener('click', () => showModule('vector'));
-        document.getElementById('launch-screen-coord-module').addEventListener('click', () => showModule('screen'));
-        document.getElementById('launch-rgb-module').addEventListener('click', () => showModule('rgb'));
-        document.getElementById('launch-gradient-module').addEventListener('click', () => showModule('gradient'));
-        document.getElementById('launch-geometric-rgb-module').addEventListener('click', () => showModule('geometricRgb'));
-        document.getElementById('launch-alpha-module').addEventListener('click', () => showModule('alpha'));
-        
-        // --- BACK BUTTONS ---
-        document.getElementById('back-to-hub-from-vector').addEventListener('click', showHub);
-        document.getElementById('back-to-hub-from-coord').addEventListener('click', showHub);
-        document.getElementById('back-to-hub-from-rgb').addEventListener('click', showHub);
-        document.getElementById('back-to-hub-from-gradient').addEventListener('click', showHub);
-        document.getElementById('back-to-hub-from-geometric-rgb').addEventListener('click', showHub);
-        document.getElementById('back-to-hub-from-alpha').addEventListener('click', showHub);
-
-        // --- NAVIGATION LOGIC ---
-        function showHub() {
-            hubContainer.classList.remove('hidden');
-            for(const key in moduleContainers) {
-                if(moduleContainers[key]) moduleContainers[key].classList.add('hidden');
-            }
-        }
-
-        function showModule(moduleKey) {
-            hubContainer.classList.add('hidden');
-            moduleContainers[moduleKey].classList.remove('hidden');
-            
-            if (!initFlags[moduleKey]) {
-                switch(moduleKey) {
-                    case 'vector': initVectorScene(); break;
-                    case 'screen': initScreenCoordScene(); break;
-                    case 'rgb': initRgbScene(); break;
-                    case 'gradient': initGradientScene(); break;
-                    case 'geometricRgb': initGeometricRgbScene(); break;
-                    case 'alpha': initAlphaScene(); break;
-                }
-            } else {
-                 if(moduleKey === 'vector') onVectorWindowResize();
-                 if(moduleKey === 'screen') onScreenCoordResize();
-                 if(moduleKey === 'geometricRgb') onGeomRgbWindowResize();
-                 if(moduleKey === 'alpha') onAlphaCanvasResize();
-            }
-        }
-
-        // --- VECTOR MODULE ---
-        let scene, camera, renderer, controls, vectorA, vectorB, vectorResult;
-        const origin = new THREE.Vector3(0, 0, 0);
-        const vectorSliders = { ax: document.getElementById('slider-ax'), ay: document.getElementById('slider-ay'), az: document.getElementById('slider-az'), bx: document.getElementById('slider-bx'), by: document.getElementById('slider-by'), bz: document.getElementById('slider-bz') };
-        const vectorValues = { ax: document.getElementById('val-ax'), ay: document.getElementById('val-ay'), az: document.getElementById('val-az'), bx: document.getElementById('val-bx'), by: document.getElementById('val-by'), bz: document.getElementById('val-bz') };
-        const resultText = document.getElementById('result-text');
-        const vectorCanvasContainer = document.getElementById('canvas-container');
-        const vectorCanvas = document.getElementById('render-canvas');
-        function initVectorScene() { initFlags.vector = true; scene = new THREE.Scene(); scene.background = new THREE.Color(0x111827); camera = new THREE.PerspectiveCamera(50, vectorCanvasContainer.clientWidth / vectorCanvasContainer.clientHeight, 0.1, 1000); camera.position.set(8, 8, 15); camera.lookAt(scene.position); renderer = new THREE.WebGLRenderer({ canvas: vectorCanvas, antialias: true }); renderer.setPixelRatio(window.devicePixelRatio); scene.add(new THREE.AmbientLight(0xffffff, 0.6)); const dirLight = new THREE.DirectionalLight(0xffffff, 1.5); dirLight.position.set(5, 10, 7.5); scene.add(dirLight); controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; scene.add(new THREE.GridHelper(10, 10, 0x444444, 0x444444)); scene.add(new THREE.AxesHelper(5)); vectorA = new THREE.ArrowHelper(new THREE.Vector3(1,1,1), origin, 1, 0x3b82f6, 0.5, 0.3); vectorB = new THREE.ArrowHelper(new THREE.Vector3(1,1,1), origin, 1, 0xec4899, 0.5, 0.3); vectorResult = new THREE.ArrowHelper(new THREE.Vector3(1,1,1), origin, 1, 0x8b5cf6, 0.5, 0.3); scene.add(vectorA, vectorB, vectorResult); for (const key in vectorSliders) { vectorSliders[key].addEventListener('input', updateVectors); } window.addEventListener('resize', onVectorWindowResize, false); updateVectors(); onVectorWindowResize(); animateVectorScene(); }
-        function updateVectors() { const vecA = new THREE.Vector3(parseFloat(vectorSliders.ax.value), parseFloat(vectorSliders.ay.value), parseFloat(vectorSliders.az.value)); const vecB = new THREE.Vector3(parseFloat(vectorSliders.bx.value), parseFloat(vectorSliders.by.value), parseFloat(vectorSliders.bz.value)); const vecResult = new THREE.Vector3().addVectors(vecA, vecB); for (const key in vectorValues) { vectorValues[key].textContent = parseFloat(vectorSliders[key].value).toFixed(1); } vectorA.position.copy(origin); vectorA.setDirection(vecA.clone().normalize()); vectorA.setLength(vecA.length(), 0.5, 0.3); vectorB.position.copy(vecA); vectorB.setDirection(vecB.clone().normalize()); vectorB.setLength(vecB.length(), 0.5, 0.3); vectorResult.position.copy(origin); vectorResult.setDirection(vecResult.clone().normalize()); vectorResult.setLength(vecResult.length(), 0.5, 0.3); resultText.innerHTML = `<span class="vector-a-color">A [${vecA.x.toFixed(1)}, ${vecA.y.toFixed(1)}, ${vecA.z.toFixed(1)}]</span><br>+ <span class="vector-b-color">B [${vecB.x.toFixed(1)}, ${vecB.y.toFixed(1)}, ${vecB.z.toFixed(1)}]</span><br>= <span class="result-color">R [${vecResult.x.toFixed(1)}, ${vecResult.y.toFixed(1)}, ${vecResult.z.toFixed(1)}]</span>`; }
-        function onVectorWindowResize() { if (!renderer) return; const newWidth = vectorCanvasContainer.clientWidth; const newHeight = vectorCanvasContainer.clientHeight; camera.aspect = newWidth / newHeight; camera.updateProjectionMatrix(); renderer.setSize(newWidth, newHeight); }
-        function animateVectorScene() { requestAnimationFrame(animateVectorScene); if (!renderer || moduleContainers.vector.classList.contains('hidden')) return; controls.update(); renderer.render(scene, camera); }
-
-        // --- SCREEN COORDINATE MODULE ---
-        const screenCoordCanvas = document.getElementById('screen-coord-canvas');
-        const coordXText = document.getElementById('coord-x'); const coordYText = document.getElementById('coord-y');
-        const canvasSizeSlider = document.getElementById('canvas-size-slider'); const canvasSizeValue = document.getElementById('canvas-size-value');
-        let screenCtx, screenCanvasWidth, screenCanvasHeight;
-        function initScreenCoordScene() { initFlags.screen = true; screenCtx = screenCoordCanvas.getContext('2d'); onScreenCoordResize(); screenCoordCanvas.addEventListener('mousemove', handleCoordMouseMove); screenCoordCanvas.addEventListener('mouseleave', () => drawScreenCoords(null)); canvasSizeSlider.addEventListener('input', onScreenCoordResize); window.addEventListener('resize', onScreenCoordResize); }
-        function handleCoordMouseMove(event) { const rect = screenCoordCanvas.getBoundingClientRect(); const mouseX = event.clientX - rect.left; const mouseY = event.clientY - rect.top; const scaledX = Math.round(mouseX * (screenCanvasWidth / rect.width)); const scaledY = Math.round(mouseY * (screenCanvasHeight / rect.height)); drawScreenCoords({ x: scaledX, y: scaledY }); }
-        function drawScreenCoords(coords) { screenCtx.fillStyle = '#1f2937'; screenCtx.fillRect(0, 0, screenCanvasWidth, screenCanvasHeight); screenCtx.strokeStyle = '#4b5563'; screenCtx.lineWidth = 0.5; for (let i = 0; i < screenCanvasWidth; i += 50) { screenCtx.beginPath(); screenCtx.moveTo(i, 0); screenCtx.lineTo(i, screenCanvasHeight); screenCtx.stroke(); } for (let i = 0; i < screenCanvasHeight; i += 50) { screenCtx.beginPath(); screenCtx.moveTo(0, i); screenCtx.lineTo(screenCanvasWidth, i); screenCtx.stroke(); } if (coords) { coordXText.textContent = coords.x; coordYText.textContent = coords.y; screenCtx.strokeStyle = '#10b981'; screenCtx.lineWidth = 1; screenCtx.beginPath(); screenCtx.moveTo(coords.x, 0); screenCtx.lineTo(coords.x, screenCanvasHeight); screenCtx.moveTo(0, coords.y); screenCtx.lineTo(screenCanvasWidth, coords.y); screenCtx.stroke(); screenCtx.fillStyle = 'white'; screenCtx.font = '14px Inter'; const text = `(${coords.x}, ${coords.y})`; const textMetrics = screenCtx.measureText(text); let textX, textY; if (coords.x > screenCanvasWidth - textMetrics.width - 15) { textX = coords.x - textMetrics.width - 8; } else { textX = coords.x + 12; } if (coords.y < 20) { textY = coords.y + 20; } else { textY = coords.y - 12; } screenCtx.fillText(text, textX, textY); } }
-        function onScreenCoordResize() { const rect = screenCoordCanvas.getBoundingClientRect(); if (rect.width === 0) return; const aspectRatio = rect.height / rect.width; const newWidth = parseInt(canvasSizeSlider.value); const newHeight = Math.round(newWidth * aspectRatio); screenCanvasWidth = newWidth; screenCanvasHeight = newHeight; screenCoordCanvas.width = screenCanvasWidth; screenCoordCanvas.height = screenCanvasHeight; canvasSizeValue.textContent = `${newWidth} x ${newHeight}`; drawScreenCoords(null); }
-
-        // --- RGB MODULE ---
-        const rgbSliders = { r: document.getElementById('rgb-r-slider'), g: document.getElementById('rgb-g-slider'), b: document.getElementById('rgb-b-slider') };
-        const rgbValues = { r: document.getElementById('rgb-r-value'), g: document.getElementById('rgb-g-value'), b: document.getElementById('rgb-b-value') };
-        const rgbPreview = document.getElementById('rgb-color-preview');
-        const rgbValueText = document.getElementById('rgb-value-text'); const hexValueText = document.getElementById('hex-value-text');
-        function initRgbScene() { initFlags.rgb = true; for (const key in rgbSliders) { rgbSliders[key].addEventListener('input', updateRgbColor); } updateRgbColor(); }
-        function updateRgbColor() { const r = rgbSliders.r.value; const g = rgbSliders.g.value; const b = rgbSliders.b.value; rgbValues.r.textContent = r; rgbValues.g.textContent = g; rgbValues.b.textContent = b; const rgbString = `rgb(${r}, ${g}, ${b})`; rgbPreview.style.backgroundColor = rgbString; rgbValueText.textContent = rgbString; hexValueText.textContent = `#${toHex(r)}${toHex(g)}${toHex(b)}`; }
-        function toHex(c) { const hex = parseInt(c).toString(16).toUpperCase(); return hex.length == 1 ? "0" + hex : hex; }
-
-        // --- GRADIENT MODULE ---
-        const gradientCanvas = document.getElementById('gradient-canvas');
-        const gradientXText = document.getElementById('gradient-x'); const gradientYText = document.getElementById('gradient-y'); const gradientRgbText = document.getElementById('gradient-rgb');
-        let gradientCtx;
-        function initGradientScene() { initFlags.gradient = true; gradientCtx = gradientCanvas.getContext('2d', { willReadFrequently: true }); gradientCanvas.width = 300; gradientCanvas.height = 290; drawGradient(); gradientCanvas.addEventListener('mousemove', handleGradientMouseMove); gradientCanvas.addEventListener('mouseleave', () => { gradientXText.textContent = '...'; gradientYText.textContent = '...'; gradientRgbText.textContent = '...'; }); }
-        function drawGradient() { const width = gradientCanvas.width; const height = gradientCanvas.height; const imageData = gradientCtx.createImageData(width, height); const data = imageData.data; for (let y = 0; y < height; y++) { for (let x = 0; x < width; x++) { const index = (y * width + x) * 4; const r = Math.floor((x / width) * 255); const g = Math.floor((y / height) * 255); const b = Math.floor(((x + y) / (width + height)) * 255); data[index] = r; data[index + 1] = g; data[index + 2] = b; data[index + 3] = 255; } } gradientCtx.putImageData(imageData, 0, 0); }
-        function handleGradientMouseMove(event) { const rect = gradientCanvas.getBoundingClientRect(); const x = Math.floor(event.clientX - rect.left); const y = Math.floor(event.clientY - rect.top); if (x < 0 || x >= gradientCanvas.width || y < 0 || y >= gradientCanvas.height) return; const pixel = gradientCtx.getImageData(x, y, 1, 1).data; const r = pixel[0]; const g = pixel[1]; const b = pixel[2]; gradientXText.textContent = x; gradientYText.textContent = y; gradientRgbText.textContent = `rgb(${r}, ${g}, ${b})`; }
-        
-        // --- GEOMETRIC RGB MODULE ---
-        let geomRgbScene, geomRgbCamera, geomRgbRenderer, geomRgbControls, colorPickerSphere;
-        const geomRgbCanvasContainer = document.getElementById('geometric-rgb-canvas-container');
-        const geomRgbCanvas = document.getElementById('geometric-rgb-canvas');
-        const geomRgbSliders = { r: document.getElementById('geom-r-slider'), g: document.getElementById('geom-g-slider'), b: document.getElementById('geom-b-slider') };
-        const geomRgbValues = { r: document.getElementById('geom-r-value'), g: document.getElementById('geom-g-value'), b: document.getElementById('geom-b-value') };
-        function initGeometricRgbScene() { initFlags.geometricRgb = true; geomRgbScene = new THREE.Scene(); geomRgbScene.background = new THREE.Color(0x111827); geomRgbCamera = new THREE.PerspectiveCamera(50, geomRgbCanvasContainer.clientWidth / geomRgbCanvasContainer.clientHeight, 0.1, 1000); geomRgbCamera.position.set(1.5, 1.5, 2.5); geomRgbRenderer = new THREE.WebGLRenderer({ canvas: geomRgbCanvas, antialias: true }); geomRgbControls = new OrbitControls(geomRgbCamera, geomRgbRenderer.domElement); geomRgbControls.enableDamping = true; geomRgbScene.add(new THREE.AmbientLight(0xffffff, 1.5)); const sphereGeom = new THREE.SphereGeometry(0.05, 32, 32); const sphereMat = new THREE.MeshBasicMaterial({ color: 0xffffff }); colorPickerSphere = new THREE.Mesh(sphereGeom, sphereMat); geomRgbScene.add(colorPickerSphere); createRgbCube(); for (const key in geomRgbSliders) { geomRgbSliders[key].addEventListener('input', updateGeomRgbFromSliders); } geomRgbCanvas.addEventListener('click', onCubeClick); window.addEventListener('resize', onGeomRgbWindowResize); updateGeomRgbFromSliders(); onGeomRgbWindowResize(); animateGeomRgbScene(); }
-        function createRgbCube() { const size = 1; const divisions = 10; const cubeGeom = new THREE.BoxGeometry(size, size, size, divisions, divisions, divisions); const colors = []; const position = cubeGeom.attributes.position; const centerOffset = size / 2; for (let i = 0; i < position.count; i++) { const x = position.getX(i) + centerOffset; const y = position.getY(i) + centerOffset; const z = position.getZ(i) + centerOffset; colors.push(x, y, z); } cubeGeom.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3)); const cubeMat = new THREE.MeshBasicMaterial({ vertexColors: true }); const cube = new THREE.Mesh(cubeGeom, cubeMat); geomRgbScene.add(cube); const lineGeom = new THREE.EdgesGeometry(cubeGeom); const lineMat = new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 2 }); const wireframe = new THREE.LineSegments(lineGeom, lineMat); geomRgbScene.add(wireframe); }
-        function updateGeomRgb(r, g, b, updateSliders = true) { geomRgbValues.r.textContent = r; geomRgbValues.g.textContent = g; geomRgbValues.b.textContent = b; if(updateSliders) { geomRgbSliders.r.value = r; geomRgbSliders.g.value = g; geomRgbSliders.b.value = b; } const x = (r / 255) - 0.5; const y = (g / 255) - 0.5; const z = (b / 255) - 0.5; colorPickerSphere.position.set(x, y, z); colorPickerSphere.material.color.setRGB(r / 255, g / 255, b / 255); }
-        function updateGeomRgbFromSliders() { updateGeomRgb(geomRgbSliders.r.value, geomRgbSliders.g.value, geomRgbSliders.b.value, false); }
-        function onCubeClick(event) { const mouse = new THREE.Vector2(); const rect = geomRgbCanvas.getBoundingClientRect(); mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1; mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1; const raycaster = new THREE.Raycaster(); raycaster.setFromCamera(mouse, geomRgbCamera); const intersects = raycaster.intersectObjects(geomRgbScene.children); if (intersects.length > 0) { const point = intersects[0].point; const r = Math.round((point.x + 0.5) * 255); const g = Math.round((point.y + 0.5) * 255); const b = Math.round((point.z + 0.5) * 255); updateGeomRgb( Math.max(0, Math.min(255, r)), Math.max(0, Math.min(255, g)), Math.max(0, Math.min(255, b)) ); } }
-        function onGeomRgbWindowResize() { if (!geomRgbRenderer) return; const newWidth = geomRgbCanvasContainer.clientWidth; const newHeight = geomRgbCanvasContainer.clientHeight; geomRgbCamera.aspect = newWidth / newHeight; geomRgbCamera.updateProjectionMatrix(); geomRgbRenderer.setSize(newWidth, newHeight); }
-        function animateGeomRgbScene() { requestAnimationFrame(animateGeomRgbScene); if (!geomRgbRenderer || moduleContainers.geometricRgb.classList.contains('hidden')) return; geomRgbControls.update(); geomRgbRenderer.render(geomRgbScene, geomRgbCamera); }
-
-        // --- ALPHA & TRANSPARENCY MODULE ---
-        const alphaCanvas = document.getElementById('alpha-canvas');
-        const alphaSlider = document.getElementById('alpha-slider');
-        const alphaValueText = document.getElementById('alpha-value');
-        const fgColorPicker = document.getElementById('foreground-color');
-        const bgColorPicker = document.getElementById('background-color');
-        const rgbaValueText = document.getElementById('rgba-value-text');
-        let alphaCtx;
-        function initAlphaScene() { initFlags.alpha = true; alphaCtx = alphaCanvas.getContext('2d'); alphaSlider.addEventListener('input', updateAlphaScene); fgColorPicker.addEventListener('input', updateAlphaScene); bgColorPicker.addEventListener('input', updateAlphaScene); window.addEventListener('resize', onAlphaCanvasResize); onAlphaCanvasResize(); }
-        function updateAlphaScene() { const alpha = alphaSlider.value; const fgColor = fgColorPicker.value; const bgColor = bgColorPicker.value; alphaValueText.textContent = parseFloat(alpha).toFixed(2); const {r, g, b} = hexToRgb(fgColor); rgbaValueText.textContent = `rgba(${r}, ${g}, ${b}, ${parseFloat(alpha).toFixed(2)})`; drawAlphaScene(alpha, fgColor, bgColor); }
-        function drawAlphaScene(alpha, fgColor, bgColor) { const width = alphaCanvas.width; const height = alphaCanvas.height; alphaCtx.fillStyle = bgColor; alphaCtx.fillRect(0, 0, width, height); alphaCtx.fillStyle = '#2d3748'; alphaCtx.fillRect(width * 0.1, height * 0.1, width * 0.6, height * 0.8); alphaCtx.globalAlpha = alpha; alphaCtx.fillStyle = fgColor; alphaCtx.fillRect(width * 0.3, height * 0.2, width * 0.6, height * 0.6); alphaCtx.globalAlpha = 1.0; }
-        function onAlphaCanvasResize() { const rect = alphaCanvas.parentElement.getBoundingClientRect(); alphaCanvas.width = rect.width; alphaCanvas.height = rect.height; updateAlphaScene(); }
-        function hexToRgb(hex) { const r = parseInt(hex.slice(1, 3), 16); const g = parseInt(hex.slice(3, 5), 16); const b = parseInt(hex.slice(5, 7), 16); return { r, g, b }; }
-
-    </script>
 </body>
 </html>
