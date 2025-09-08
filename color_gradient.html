@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Guide to Color Gradients</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* bg-gray-900 */
+        }
+        /* Custom styles for color inputs to make them more visible */
+        input[type="color"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 80px;
+            height: 80px;
+            border: none;
+            cursor: pointer;
+            background-color: transparent;
+            border-radius: 50%;
+            transition: transform 0.2s ease-in-out;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+            border-radius: 50%;
+        }
+        input[type="color"]::-webkit-color-swatch {
+            border: 4px solid #374151; /* border-gray-700 */
+            border-radius: 50%;
+        }
+        input[type="color"]:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body class="text-gray-300 antialiased">
+
+    <div class="container mx-auto px-4 py-8 md:py-12 max-w-5xl">
+
+        <!-- Header -->
+        <header class="text-center mb-10 md:mb-16">
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-2">The Inner Beauty of a Gradient</h1>
+            <p class="text-lg md:text-xl text-gray-400">An interactive exploration of how computers blend colors.</p>
+        </header>
+
+        <main class="space-y-12">
+            <!-- Introduction -->
+            <div class="bg-gray-800/50 p-6 rounded-2xl ring-1 ring-white/10">
+                <h2 class="text-2xl font-bold text-teal-300 mb-3">What is a Color Gradient?</h2>
+                <p class="text-lg leading-relaxed">
+                    In computer graphics, a gradient is a smooth, gradual transition between two or more colors. You see them everywhere: in website backgrounds, button designs, data visualizations, and even in the sky of a video game. But how does a computer know which colors to put in the middle?
+                </p>
+                <p class="text-lg leading-relaxed mt-4">
+                    The secret is a simple but powerful mathematical concept: <strong class="text-white">Linear Interpolation</strong>. Let's break it down below.
+                </p>
+            </div>
+
+            <!-- Interactive Module -->
+            <div class="bg-gray-900 rounded-2xl shadow-2xl ring-1 ring-white/10 overflow-hidden">
+                <div class="p-6 md:p-8">
+                    <h2 class="text-2xl font-bold text-pink-400 mb-4 text-center">Build a Gradient</h2>
+                    <p class="text-center mb-6 max-w-2xl mx-auto">Pick a start color and an end color. The canvas below will instantly generate the gradient by interpolating between their Red, Green, and Blue (RGB) values.</p>
+                </div>
+
+                <!-- Interactive Controls -->
+                <div class="flex justify-around items-center px-6 md:px-8 pb-6">
+                    <!-- Start Color -->
+                    <div class="text-center">
+                        <label for="startColor" class="block text-lg font-semibold text-white mb-2">Start Color</label>
+                        <input type="color" id="startColor" value="#be185d">
+                        <div id="startColorValue" class="mt-3 font-mono text-sm p-2 bg-gray-800 rounded-md">#be185d</div>
+                    </div>
+
+                    <!-- Arrow -->
+                    <div class="text-5xl text-gray-500 font-thin hidden sm:block">&#8594;</div>
+
+                    <!-- End Color -->
+                    <div class="text-center">
+                        <label for="endColor" class="block text-lg font-semibold text-white mb-2">End Color</label>
+                        <input type="color" id="endColor" value="#5b21b6">
+                        <div id="endColorValue" class="mt-3 font-mono text-sm p-2 bg-gray-800 rounded-md">#5b21b6</div>
+                    </div>
+                </div>
+
+                <!-- Gradient Canvas -->
+                <div class="px-2 md:px-8 pb-8">
+                    <canvas id="gradientCanvas" class="w-full h-32 rounded-lg bg-gray-800"></canvas>
+                </div>
+            </div>
+
+            <!-- Explanation Section -->
+            <div class="bg-gray-800/50 p-6 rounded-2xl ring-1 ring-white/10">
+                <h2 class="text-2xl font-bold text-sky-400 mb-4">The Math: Linear Interpolation (Lerp)</h2>
+                <p class="text-lg leading-relaxed mb-4">
+                    To find any color in the gradient, we use a function often called `lerp`. It calculates a point between two values based on a fraction `t` (where `t` is between 0 and 1). At the start of the gradient, `t=0`. In the middle, `t=0.5`. At the end, `t=1`.
+                </p>
+                <p class="font-mono text-center text-lg bg-gray-900 p-4 rounded-lg text-yellow-300 shadow-inner">
+                    result = start + (end - start) * t
+                </p>
+                <p class="text-lg leading-relaxed mt-4">
+                    This formula is applied separately to each color channel: Red, Green, and Blue.
+                </p>
+                
+                <!-- Dynamic Lerp Explanation -->
+                <div class="mt-6 p-4 bg-gray-900 rounded-lg">
+                    <h3 class="text-xl font-semibold mb-3 text-white">Example: At the halfway point (t = 0.5)</h3>
+                    <p class="mb-4">Let's see how the middle color of your gradient is calculated:</p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 font-mono text-sm">
+                        <div class="bg-red-900/50 p-3 rounded-md">
+                            <span class="font-bold text-red-300">Red:</span>
+                            <span id="lerp-r"></span>
+                        </div>
+                        <div class="bg-green-900/50 p-3 rounded-md">
+                            <span class="font-bold text-green-300">Green:</span>
+                            <span id="lerp-g"></span>
+                        </div>
+                        <div class="bg-blue-900/50 p-3 rounded-md">
+                            <span class="font-bold text-blue-300">Blue:</span>
+                            <span id="lerp-b"></span>
+                        </div>
+                    </div>
+                    <div class="mt-4 text-center p-3 rounded-md bg-gray-800">
+                        <p>Resulting middle color: <span id="midpoint-color" class="font-bold"></span></p>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <footer class="text-center mt-16 text-gray-500">
+            <p>An interactive learning experience by Gemini.</p>
+        </footer>
+    </div>
+
+    <script>
+        // DOM element references
+        const canvas = document.getElementById('gradientCanvas');
+        const ctx = canvas.getContext('2d');
+        const startColorInput = document.getElementById('startColor');
+        const endColorInput = document.getElementById('endColor');
+        const startColorValue = document.getElementById('startColorValue');
+        const endColorValue = document.getElementById('endColorValue');
+        
+        // Lerp explanation elements
+        const lerpRed = document.getElementById('lerp-r');
+        const lerpGreen = document.getElementById('lerp-g');
+        const lerpBlue = document.getElementById('lerp-b');
+        const midpointColorEl = document.getElementById('midpoint-color');
+
+        /**
+         * Converts a hex color string to an RGB object.
+         * @param {string} hex - The hex color string (e.g., "#RRGGBB").
+         * @returns {{r: number, g: number, b: number}} An object with r, g, b values (0-255).
+         */
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+        
+        /**
+         * Converts an RGB color value to a hex string.
+         * @param {number} r - Red value.
+         * @param {number} g - Green value.
+         * @param {number} b - Blue value.
+         * @returns {string} The hex color string.
+         */
+        function rgbToHex(r, g, b) {
+            return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+        }
+
+        /**
+         * Linearly interpolates between two values.
+         * @param {number} start - The starting value.
+         * @param {number} end - The ending value.
+         * @param {number} t - The interpolation factor (0 to 1).
+         * @returns {number} The interpolated value.
+         */
+        function lerp(start, end, t) {
+            return start * (1 - t) + end * t;
+        }
+
+        /**
+         * Draws the gradient on the canvas.
+         */
+        function drawGradient() {
+            const startColor = hexToRgb(startColorInput.value);
+            const endColor = hexToRgb(endColorInput.value);
+            
+            if (!startColor || !endColor) return;
+
+            // Make canvas resolution match its display size
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+            
+            const width = canvas.width;
+            
+            for (let x = 0; x < width; x++) {
+                const t = x / (width - 1); // Interpolation factor from 0 to 1
+                
+                const r = Math.round(lerp(startColor.r, endColor.r, t));
+                const g = Math.round(lerp(startColor.g, endColor.g, t));
+                const b = Math.round(lerp(startColor.b, endColor.b, t));
+                
+                ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+                ctx.fillRect(x, 0, 1, canvas.height);
+            }
+            
+            updateExplanation(startColor, endColor);
+        }
+        
+        /**
+         * Updates the explanation section with current color values.
+         * @param {{r: number, g: number, b: number}} startColor - The starting RGB color.
+         * @param {{r: number, g: number, b: number}} endColor - The ending RGB color.
+         */
+        function updateExplanation(startColor, endColor) {
+            const t = 0.5;
+            
+            const midR = Math.round(lerp(startColor.r, endColor.r, t));
+            const midG = Math.round(lerp(startColor.g, endColor.g, t));
+            const midB = Math.round(lerp(startColor.b, endColor.b, t));
+            
+            lerpRed.textContent = `${startColor.r} + (${endColor.r} - ${startColor.r}) * ${t} = ${midR}`;
+            lerpGreen.textContent = `${startColor.g} + (${endColor.g} - ${startColor.g}) * ${t} = ${midG}`;
+            lerpBlue.textContent = `${startColor.b} + (${endColor.b} - ${startColor.b}) * ${t} = ${midB}`;
+            
+            const midHex = rgbToHex(midR, midG, midB);
+            midpointColorEl.textContent = midHex;
+            midpointColorEl.style.color = midHex;
+        }
+        
+        /**
+         * Handles input changes from the color pickers.
+         */
+        function handleColorChange() {
+            startColorValue.textContent = startColorInput.value;
+            endColorValue.textContent = endColorInput.value;
+            drawGradient();
+        }
+
+        // Event Listeners
+        startColorInput.addEventListener('input', handleColorChange);
+        endColorInput.addEventListener('input', handleColorChange);
+
+        // Ensure canvas is redrawn on window resize to maintain quality
+        window.addEventListener('resize', drawGradient);
+
+        // Initial draw on page load
+        window.onload = () => {
+             // A short delay ensures the layout is stable before the first draw.
+            setTimeout(drawGradient, 100);
+        };
+
+    </script>
+</body>
+</html>
