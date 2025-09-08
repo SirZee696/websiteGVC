@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive RGB Color Cube</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden; /* Prevents scrollbars from appearing due to canvas */
+        }
+        .slider-thumb::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            background-color: var(--thumb-color);
+        }
+        .slider-thumb::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            background-color: var(--thumb-color);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white flex flex-col md:flex-row h-screen antialiased">
+
+    <!-- Controls Panel -->
+    <div class="w-full md:w-96 p-6 bg-gray-800 shadow-2xl rounded-lg m-4 flex flex-col space-y-6 overflow-y-auto">
+        <div>
+            <h1 class="text-3xl font-bold text-cyan-400">RGB Color Space</h1>
+            <p class="text-gray-400 mt-2">A geometric interpretation of color.</p>
+        </div>
+        
+        <div class="text-base text-gray-300 space-y-3">
+            <p>Each color you see on a screen can be represented as a point in a 3D cube.</p>
+            <p>The position of the point is determined by the intensity of <span class="text-green-500 font-semibold">Green (X)</span>, <span class="text-red-500 font-semibold">Red (Y)</span>, and <span class="text-blue-500 font-semibold">Blue (Z)</span> light.</p>
+            <p>Use the sliders to change the color, and rotate the cube to see where that color lives in 3D space.</p>
+        </div>
+
+        <!-- Sliders -->
+        <div class="space-y-4 pt-4">
+            <!-- Green Slider -->
+            <div>
+                <label for="green" class="flex justify-between items-center text-lg font-medium text-green-500">
+                    <span>Green (X-axis)</span>
+                    <span id="green-value">127</span>
+                </label>
+                <input id="green" type="range" min="0" max="255" value="127" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb" style="--thumb-color: #22c55e;">
+            </div>
+            <!-- Red Slider -->
+            <div>
+                <label for="red" class="flex justify-between items-center text-lg font-medium text-red-500">
+                    <span>Red (Y-axis)</span>
+                    <span id="red-value">127</span>
+                </label>
+                <input id="red" type="range" min="0" max="255" value="127" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb" style="--thumb-color: #ef4444;">
+            </div>
+            <!-- Blue Slider -->
+            <div>
+                <label for="blue" class="flex justify-between items-center text-lg font-medium text-blue-500">
+                    <span>Blue (Z-axis)</span>
+                    <span id="blue-value">127</span>
+                </label>
+                <input id="blue" type="range" min="0" max="255" value="127" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb" style="--thumb-color: #3b82f6;">
+            </div>
+        </div>
+
+        <!-- Color Display -->
+        <div class="flex items-center space-x-4 pt-4">
+            <div id="color-box" class="w-20 h-20 rounded-lg shadow-lg border-2 border-gray-700 transition-colors duration-200"></div>
+            <div>
+                <p class="text-lg font-semibold">Hex Code</p>
+                <p id="hex-value" class="text-2xl font-mono bg-gray-900 px-3 py-1 rounded-md text-cyan-400">#7F7F7F</p>
+            </div>
+        </div>
+        
+        <div class="text-sm text-gray-500 pt-4 text-center">
+            Click and drag on the cube to rotate. Scroll to zoom.
+        </div>
+
+        <div class="mt-auto pt-6">
+            <button class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out">
+                Back
+            </button>
+        </div>
+    </div>
+
+    <!-- 3D Canvas -->
+    <div id="canvas-container" class="flex-1 w-full h-full"></div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.164.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.0/examples/jsm/"
+            }
+        }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+        import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+
+        // --- DOM Elements ---
+        const container = document.getElementById('canvas-container');
+        const redSlider = document.getElementById('red');
+        const greenSlider = document.getElementById('green');
+        const blueSlider = document.getElementById('blue');
+        const redValue = document.getElementById('red-value');
+        const greenValue = document.getElementById('green-value');
+        const blueValue = document.getElementById('blue-value');
+        const colorBox = document.getElementById('color-box');
+        const hexValue = document.getElementById('hex-value');
+
+        // --- Scene Setup ---
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x111827); // bg-gray-900
+
+        const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+        camera.position.set(1.5, 1.5, 1.5);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        container.appendChild(renderer.domElement);
+        
+        // --- Lighting ---
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(5, 5, 5);
+        scene.add(directionalLight);
+
+        // --- Controls ---
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.minDistance = 1;
+        controls.maxDistance = 10;
+        
+        // --- Color Space Cube ---
+        const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
+        const edges = new THREE.EdgesGeometry(cubeGeometry);
+        const lineMaterial = new THREE.LineBasicMaterial({ color: 0x4b5563, linewidth: 2 }); // gray-600
+        const cubeLines = new THREE.LineSegments(edges, lineMaterial);
+        cubeLines.position.set(0.5, 0.5, 0.5);
+        scene.add(cubeLines);
+
+        // --- Axes and Labels ---
+        const axisLength = 1.2;
+        const axesHelper = new THREE.AxesHelper(axisLength);
+        scene.add(axesHelper);
+        
+        // Set specific colors for axes: X=Green, Y=Red, Z=Blue
+        axesHelper.setColors(new THREE.Color(0x22c55e), new THREE.Color(0xef4444), new THREE.Color(0x3b82f6));
+
+        const loader = new FontLoader();
+        loader.load('https://cdn.jsdelivr.net/npm/three@0.164.0/examples/fonts/helvetiker_regular.typeface.json', function (font) {
+            const textMaterial = new THREE.MeshBasicMaterial({ color: 0xcccccc });
+            const textParams = { font: font, size: 0.08, height: 0.01 };
+            
+            // G on X-axis
+            const gGeo = new TextGeometry('G', textParams);
+            const gMesh = new THREE.Mesh(gGeo, textMaterial);
+            gMesh.position.set(axisLength + 0.05, 0, 0);
+            scene.add(gMesh);
+
+            // R on Y-axis
+            const rGeo = new TextGeometry('R', textParams);
+            const rMesh = new THREE.Mesh(rGeo, textMaterial);
+            rMesh.position.set(0, axisLength + 0.05, 0);
+            scene.add(rMesh);
+
+            // B on Z-axis
+            const bGeo = new TextGeometry('B', textParams);
+            const bMesh = new THREE.Mesh(bGeo, textMaterial);
+            bMesh.position.set(0, 0, axisLength + 0.05);
+            scene.add(bMesh);
+        });
+
+        // --- Color Representation ---
+        // Point (Sphere)
+        const pointGeometry = new THREE.SphereGeometry(0.04, 32, 32);
+        const pointMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
+        const colorPoint = new THREE.Mesh(pointGeometry, pointMaterial);
+        scene.add(colorPoint);
+
+        // Vector (Line)
+        const linePoints = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(0.5, 0.5, 0.5)];
+        const vectorGeometry = new THREE.BufferGeometry().setFromPoints(linePoints);
+        const vectorMaterial = new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 3 });
+        const colorVector = new THREE.Line(vectorGeometry, vectorMaterial);
+        scene.add(colorVector);
+
+        // --- Update Logic ---
+        function updateColor() {
+            const r = parseInt(redSlider.value);
+            const g = parseInt(greenSlider.value);
+            const b = parseInt(blueSlider.value);
+
+            // Normalize values to 0-1 range for positioning
+            const x = g / 255; // Green on X-axis
+            const y = r / 255; // Red on Y-axis
+            const z = b / 255; // Blue on Z-axis
+            
+            // Update UI text
+            redValue.textContent = r;
+            greenValue.textContent = g;
+            blueValue.textContent = b;
+
+            // Update color box and hex code
+            // The color itself is still based on R, G, B values
+            const color = new THREE.Color(r / 255, g / 255, b / 255);
+            const hexString = '#' + color.getHexString().toUpperCase();
+            colorBox.style.backgroundColor = hexString;
+            hexValue.textContent = hexString;
+
+            // Update 3D elements
+            colorPoint.position.set(x, y, z);
+            pointMaterial.color.set(color);
+            pointMaterial.emissive.set(color).multiplyScalar(0.5); // Add a glow
+            
+            const positions = colorVector.geometry.attributes.position.array;
+            positions[3] = x;
+            positions[4] = y;
+            positions[5] = z;
+            colorVector.geometry.attributes.position.needsUpdate = true;
+            vectorMaterial.color.set(color);
+        }
+
+        // --- Event Listeners ---
+        redSlider.addEventListener('input', updateColor);
+        greenSlider.addEventListener('input', updateColor);
+        blueSlider.addEventListener('input', updateColor);
+
+        // --- Responsive Canvas ---
+        window.addEventListener('resize', () => {
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+
+        // --- Animation Loop ---
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // --- Initial Call ---
+        updateColor();
+        animate();
+    </script>
+</body>
+</html>
+
+
+
