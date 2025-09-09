@@ -133,18 +133,6 @@
                     </div>
                 </div>
 
-                <div class="mt-8 flex flex-wrap gap-4 justify-center">
-                    <label for="uploadBtn" class="btn bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg shadow-md cursor-pointer">
-                        Upload Image
-                    </label>
-                    <input type="file" id="uploadBtn" class="hidden" accept="image/*">
-                    <button id="equalizeBtn" class="btn bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg shadow-md" disabled>
-                        Apply Equalization
-                    </button>
-                    <button id="resetBtn" class="btn bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg shadow-md" disabled>
-                        Reset
-                    </button>
-                </div>
             </div>
 
             <!-- Right Column: Explanations -->
@@ -157,6 +145,19 @@
                     <p class="mt-2 text-gray-400">
                         Upload an image to start. Then, follow the steps below as you "Apply Equalization".
                     </p>
+
+                    <div class="mt-6 flex flex-wrap gap-4">
+                        <label for="uploadBtn" class="btn bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg shadow-md cursor-pointer">
+                            Upload Image
+                        </label>
+                        <input type="file" id="uploadBtn" class="hidden" accept="image/*">
+                        <button id="equalizeBtn" class="btn bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg shadow-md" disabled>
+                            Apply Equalization
+                        </button>
+                        <button id="resetBtn" class="btn bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg shadow-md" disabled>
+                            Reset
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Interactive Formula Simulation -->
