@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Histogram Equalization</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* bg-gray-900 */
+        }
+        .formula {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #374151; /* bg-gray-700 */
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            color: #d1d5db; /* text-gray-300 */
+            display: inline-block;
+        }
+        .data-array {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #1f2937; /* bg-gray-800 */
+            border: 1px solid #4b5563; /* border-gray-600 */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            max-height: 150px;
+            overflow-y: auto;
+            word-break: break-all;
+            color: #9ca3af; /* text-gray-400 */
+        }
+        canvas {
+            background-color: #374151; /* bg-gray-700 */
+            border-radius: 0.5rem;
+        }
+        .btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+        .step-card {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        .step-card.active {
+            background-color: rgba(79, 70, 229, 0.2); /* indigo-600 with opacity */
+            border-color: rgba(99, 102, 241, 0.8); /* indigo-500 */
+            transform: scale(1.02);
+        }
+        /* Custom slider styles */
+        input[type=range] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+            width: 100%;
+        }
+        input[type=range]:focus {
+            outline: none;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            background: #4f46e5;
+            height: 0.5rem;
+            border-radius: 0.25rem;
+        }
+        input[type=range]::-moz-range-track {
+            background: #4f46e5;
+            height: 0.5rem;
+            border-radius: 0.25rem;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            margin-top: -6px; /* Position thumb correctly */
+            background-color: #eab308;
+            height: 1.5rem;
+            width: 1.5rem;
+            border-radius: 50%;
+            border: 2px solid #ffffff;
+        }
+        input[type=range]::-moz-range-thumb {
+            background-color: #eab308;
+            height: 1.5rem;
+            width: 1.5rem;
+            border-radius: 50%;
+            border: 2px solid #ffffff;
+        }
+    </style>
+</head>
+<body class="text-gray-200">
+
+    <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold tracking-tight text-white sm:text-5xl">Interactive Histogram Equalization</h1>
+            <p class="mt-4 text-lg text-gray-400">A visual guide to enhancing image contrast.</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- Left Column: Interactive Simulation -->
+            <div class="bg-gray-800 p-6 rounded-xl shadow-2xl">
+                <div class="space-y-6">
+                    <!-- Original Image -->
+                    <div>
+                        <h3 class="text-lg font-semibold mb-2 text-indigo-400">1. Original Grayscale Image</h3>
+                        <p id="original-dimensions" class="text-sm text-gray-400 mb-2 h-5"></p>
+                        <canvas id="originalImage" width="256" height="256" class="w-full h-auto"></canvas>
+                    </div>
+
+                    <!-- Original Histogram -->
+                    <div>
+                        <h3 class="text-lg font-semibold mb-2 text-indigo-400">2. Original Histogram</h3>
+                        <canvas id="originalHistogram" width="256" height="100" class="w-full h-auto"></canvas>
+                    </div>
+
+                    <!-- Equalized Image -->
+                    <div>
+                        <h3 class="text-lg font-semibold mb-2 text-green-400">4. Equalized Image</h3>
+                        <p id="equalized-dimensions" class="text-sm text-gray-400 mb-2 h-5"></p>
+                        <canvas id="equalizedImage" width="256" height="256" class="w-full h-auto"></canvas>
+                    </div>
+
+                    <!-- Equalized Histogram -->
+                    <div>
+                        <h3 class="text-lg font-semibold mb-2 text-green-400">5. Equalized Histogram</h3>
+                        <canvas id="equalizedHistogram" width="256" height="100" class="w-full h-auto"></canvas>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex flex-wrap gap-4 justify-center">
+                    <label for="uploadBtn" class="btn bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg shadow-md cursor-pointer">
+                        Upload Image
+                    </label>
+                    <input type="file" id="uploadBtn" class="hidden" accept="image/*">
+                    <button id="equalizeBtn" class="btn bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg shadow-md" disabled>
+                        Apply Equalization
+                    </button>
+                    <button id="resetBtn" class="btn bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg shadow-md" disabled>
+                        Reset
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Column: Explanations -->
+            <div class="space-y-6">
+                <div id="step-intro" class="step-card">
+                    <h2 class="text-2xl font-bold mb-3 text-white">How It Works</h2>
+                    <p class="text-gray-300">
+                        Histogram equalization is a technique for adjusting image intensities to enhance contrast. It works by spreading out the most frequent intensity values, resulting in a flatter, more distributed histogram.
+                    </p>
+                    <p class="mt-2 text-gray-400">
+                        Upload an image to start. Then, follow the steps below as you "Apply Equalization".
+                    </p>
+                </div>
+
+                <!-- Interactive Formula Simulation -->
+                <div id="step-interactive" class="step-card hidden">
+                    <h3 class="text-xl font-semibold mb-2 text-amber-400">Interactive Formula Simulation</h3>
+                    <p class="text-gray-300 mb-4">
+                        Select an original pixel intensity to see how the formula transforms it.
+                    </p>
+                    <div class="flex items-center gap-4 mb-4">
+                        <label for="pixelTracer" class="font-medium">p:</label>
+                        <input type="range" id="pixelTracer" min="0" max="255" value="128" disabled class="w-full">
+                        <span id="pixelTracerValue" class="font-bold text-lg w-12 text-center text-amber-400">128</span>
+                    </div>
+                    <div class="bg-gray-900 p-4 rounded-lg text-center">
+                        <p class="text-lg font-mono tracking-wider text-gray-300">
+                            p' = round( (L-1) * CDF(p) )
+                        </p>
+                        <p id="formula-breakdown" class="text-lg font-mono tracking-wider mt-2 text-cyan-400">
+                           <!-- e.g. 210 = round( 255 * 0.8235 ) -->
+                        </p>
+                    </div>
+                </div>
+                
+                <div id="step-pdf" class="step-card">
+                    <h3 class="text-xl font-semibold mb-2 text-white">Step 1: Calculate the PDF</h3>
+                    <p class="text-gray-300">
+                        First, we calculate the Probability Density Function (PDF). This is the frequency of each pixel intensity (from 0 to 255) divided by the total number of pixels.
+                    </p>
+                    <p class="formula mt-2">pdf[i] = histogram[i] / totalPixels</p>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Calculated PDF (first 20 values):</h4>
+                        <div id="pdf-output" class="data-array">Click "Apply Equalization" to see the data.</div>
+                    </div>
+                </div>
+
+                <div id="step-cdf" class="step-card">
+                    <h3 class="text-xl font-semibold mb-2 text-white">Step 2: Calculate the CDF</h3>
+                    <p class="text-gray-300">
+                        Next, we compute the Cumulative Distribution Function (CDF) by progressively summing the PDF values. The CDF maps each input intensity to a value between 0 and 1.
+                    </p>
+                    <p class="formula mt-2">cdf[i] = Σ pdf[j] for j=0 to i</p>
+                     <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Calculated CDF (first 20 values):</h4>
+                        <div id="cdf-output" class="data-array">...</div>
+                    </div>
+                </div>
+
+                <div id="step-lut" class="step-card">
+                    <h3 class="text-xl font-semibold mb-2 text-white">Step 3: Create a Lookup Table (LUT)</h3>
+                    <p class="text-gray-300">
+                        We create a lookup table (LUT) to map the original pixel values to the new, equalized values. This is done by scaling the CDF by the maximum intensity level (L-1, which is 255 for an 8-bit image).
+                    </p>
+                    <p class="formula mt-2">lut[i] = round(cdf[i] * 255)</p>
+                     <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Generated LUT (first 20 values):</h4>
+                        <div id="lut-output" class="data-array">...</div>
+                    </div>
+                </div>
+                 <div id="step-apply" class="step-card">
+                    <h3 class="text-xl font-semibold mb-2 text-white">Step 4: Apply the LUT</h3>
+                    <p class="text-gray-300">
+                        Finally, we create the new image. We iterate through each pixel of the original image, find its intensity, and replace it with the corresponding value from our lookup table. The result is a high-contrast image with a more distributed histogram.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="text-center mt-8 mb-4">
+        <button onclick="history.back()" class="btn bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg shadow-md">
+            Back
+        </button>
+    </div>
+
+    <img id="sourceImage" class="hidden" alt="User uploaded image source">
+
+    <script>
+        const originalCanvas = document.getElementById('originalImage');
+        const originalCtx = originalCanvas.getContext('2d');
+        const originalHistCanvas = document.getElementById('originalHistogram');
+        const originalHistCtx = originalHistCanvas.getContext('2d');
+
+        const equalizedCanvas = document.getElementById('equalizedImage');
+        const equalizedCtx = equalizedCanvas.getContext('2d');
+        const equalizedHistCanvas = document.getElementById('equalizedHistogram');
+        const equalizedHistCtx = equalizedHistCanvas.getContext('2d');
+
+        const uploadBtn = document.getElementById('uploadBtn');
+        const equalizeBtn = document.getElementById('equalizeBtn');
+        const resetBtn = document.getElementById('resetBtn');
+
+        const pdfOutput = document.getElementById('pdf-output');
+        const cdfOutput = document.getElementById('cdf-output');
+        const lutOutput = document.getElementById('lut-output');
+        
+        const interactiveCard = document.getElementById('step-interactive');
+        const pixelTracer = document.getElementById('pixelTracer');
+        const pixelTracerValue = document.getElementById('pixelTracerValue');
+        const formulaBreakdown = document.getElementById('formula-breakdown');
+        const sourceImage = document.getElementById('sourceImage');
+        const originalDimensions = document.getElementById('original-dimensions');
+        const equalizedDimensions = document.getElementById('equalized-dimensions');
+
+        const stepCards = document.querySelectorAll('.step-card');
+
+        let originalImageData = null;
+        let equalizationData = { 
+            cdf: null, 
+            lut: null, 
+            originalHistogram: null, 
+            equalizedHistogram: null 
+        };
+
+        function drawUploadPrompt() {
+            originalCtx.clearRect(0, 0, originalCanvas.width, originalCanvas.height);
+            originalCtx.fillStyle = '#9ca3af';
+            originalCtx.textAlign = 'center';
+            originalCtx.font = '16px Inter';
+            originalCtx.fillText('Upload an image to start', originalCanvas.width / 2, originalCanvas.height / 2);
+        }
+
+        function clearOutputs() {
+            pdfOutput.textContent = 'Click "Apply Equalization" to see the data.';
+            cdfOutput.textContent = '...';
+            lutOutput.textContent = '...';
+            formulaBreakdown.textContent = '';
+            originalHistCtx.clearRect(0, 0, originalHistCanvas.width, originalHistCanvas.height);
+            equalizedCtx.clearRect(0, 0, equalizedCanvas.width, equalizedCanvas.height);
+            equalizedHistCtx.clearRect(0, 0, equalizedHistCanvas.width, equalizedHistCanvas.height);
+            originalDimensions.textContent = '';
+            equalizedDimensions.textContent = '';
+            stepCards.forEach(card => card.classList.remove('active'));
+            document.getElementById('step-intro').classList.add('active');
+            interactiveCard.classList.add('hidden');
+            pixelTracer.disabled = true;
+            // Don't clear original canvas on reset, only when new image is uploaded
+            if (!originalImageData) {
+                drawUploadPrompt();
+            }
+        }
+
+        function calculateHistogram(imageData) {
+            const histogram = new Array(256).fill(0);
+            for (let i = 0; i < imageData.data.length; i += 4) {
+                histogram[imageData.data[i]]++;
+            }
+            return histogram;
+        }
+
+        function drawHistogram(ctx, canvas, histogram, highlightIndex = -1) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const maxVal = Math.max(...histogram);
+            const barWidth = canvas.width / histogram.length;
+            const normalColor = (ctx === equalizedHistCtx) ? '#22c55e' : '#6366f1';
+            const highlightColor = '#f59e0b'; // amber-500
+
+            for (let i = 0; i < histogram.length; i++) {
+                if (histogram[i] === 0) continue;
+                const barHeight = (histogram[i] / maxVal) * canvas.height;
+                ctx.fillStyle = (i === highlightIndex) ? highlightColor : normalColor;
+                ctx.fillRect(i * barWidth, canvas.height - barHeight, barWidth, barHeight);
+            }
+        }
+        
+        function highlightStep(stepId) {
+            stepCards.forEach(card => card.classList.remove('active'));
+            document.getElementById(stepId).classList.add('active');
+        }
+
+        function formatArrayForDisplay(arr) {
+            return '[' + arr.slice(0, 20).map(n => n.toFixed(4)).join(', ') + ', ...]';
+        }
+
+        function updatePixelTracer(pValue) {
+            if (!equalizationData.cdf || !equalizationData.lut) return;
+
+            pixelTracerValue.textContent = pValue;
+            const cdfValue = equalizationData.cdf[pValue];
+            const newPixelValue = equalizationData.lut[pValue];
+            
+            formulaBreakdown.textContent = `${newPixelValue} = round( 255 * ${cdfValue.toFixed(4)} )`;
+
+            drawHistogram(originalHistCtx, originalHistCanvas, equalizationData.originalHistogram, pValue);
+            drawHistogram(equalizedHistCtx, equalizedHistCanvas, equalizationData.equalizedHistogram, newPixelValue);
+        }
+
+        pixelTracer.addEventListener('input', (e) => {
+            updatePixelTracer(parseInt(e.target.value));
+        });
+
+        uploadBtn.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file || !file.type.startsWith('image/')) {
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                sourceImage.onload = () => {
+                    clearOutputs();
+                    originalCtx.clearRect(0, 0, originalCanvas.width, originalCanvas.height);
+                    
+                    const width = sourceImage.naturalWidth;
+                    const height = sourceImage.naturalHeight;
+                    const dimensionsText = `Dimensions: ${width} x ${height}`;
+                    originalDimensions.textContent = dimensionsText;
+                    equalizedDimensions.textContent = dimensionsText;
+
+                    // Draw image and convert to grayscale
+                    originalCtx.drawImage(sourceImage, 0, 0, originalCanvas.width, originalCanvas.height);
+                    const imageData = originalCtx.getImageData(0, 0, originalCanvas.width, originalCanvas.height);
+                    for (let i = 0; i < imageData.data.length; i += 4) {
+                        // Using luminosity method for grayscale conversion
+                        const gray = imageData.data[i] * 0.299 + imageData.data[i + 1] * 0.587 + imageData.data[i + 2] * 0.114;
+                        imageData.data[i] = gray;
+                        imageData.data[i + 1] = gray;
+                        imageData.data[i + 2] = gray;
+                    }
+                    originalCtx.putImageData(imageData, 0, 0);
+                    originalImageData = imageData;
+
+                    // Calculate and draw histogram
+                    const histogram = calculateHistogram(originalImageData);
+                    drawHistogram(originalHistCtx, originalHistCanvas, histogram);
+                    equalizeBtn.disabled = false;
+                    resetBtn.disabled = true;
+                };
+                sourceImage.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        equalizeBtn.addEventListener('click', async () => {
+            if (!originalImageData) return;
+            equalizeBtn.disabled = true;
+
+            const width = originalCanvas.width;
+            const height = originalCanvas.height;
+            const totalPixels = width * height;
+
+            // Step 1: PDF
+            await new Promise(r => setTimeout(r, 300));
+            highlightStep('step-pdf');
+            const histogram = calculateHistogram(originalImageData);
+            const pdf = histogram.map(count => count / totalPixels);
+            pdfOutput.textContent = formatArrayForDisplay(pdf);
+
+            // Step 2: CDF
+            await new Promise(r => setTimeout(r, 500));
+            highlightStep('step-cdf');
+            const cdf = new Array(256).fill(0);
+            cdf[0] = pdf[0];
+            for (let i = 1; i < 256; i++) { cdf[i] = cdf[i - 1] + pdf[i]; }
+            cdfOutput.textContent = formatArrayForDisplay(cdf);
+
+            // Step 3: LUT
+            await new Promise(r => setTimeout(r, 500));
+            highlightStep('step-lut');
+            const lut = cdf.map(val => Math.round(val * 255));
+            lutOutput.textContent = '[' + lut.slice(0, 20).join(', ') + ', ...]';
+
+            // Step 4: Apply LUT
+            await new Promise(r => setTimeout(r, 500));
+            highlightStep('step-apply');
+            const equalizedImageData = equalizedCtx.createImageData(width, height);
+            for (let i = 0; i < originalImageData.data.length; i += 4) {
+                const newGray = lut[originalImageData.data[i]];
+                equalizedImageData.data[i] = newGray; equalizedImageData.data[i+1] = newGray; equalizedImageData.data[i+2] = newGray; equalizedImageData.data[i+3] = 255;
+            }
+            equalizedCtx.putImageData(equalizedImageData, 0, 0);
+
+            // Draw final histogram and store data for interactive part
+            const equalizedHistogramData = calculateHistogram(equalizedImageData);
+            drawHistogram(equalizedHistCtx, equalizedHistCanvas, equalizedHistogramData);
+            
+            equalizationData = { cdf, lut, originalHistogram: histogram, equalizedHistogram: equalizedHistogramData };
+            
+            // Activate interactive formula simulator
+            await new Promise(r => setTimeout(r, 300));
+            highlightStep('step-interactive');
+            interactiveCard.classList.remove('hidden');
+            pixelTracer.disabled = false;
+            updatePixelTracer(parseInt(pixelTracer.value));
+            resetBtn.disabled = false;
+        });
+
+        resetBtn.addEventListener('click', () => {
+            if (!originalImageData) return;
+
+            // Clear equalization results
+            equalizedCtx.clearRect(0, 0, equalizedCanvas.width, equalizedCanvas.height);
+            equalizedHistCtx.clearRect(0, 0, equalizedHistCanvas.width, equalizedHistCanvas.height);
+            equalizedDimensions.textContent = `Dimensions: ${sourceImage.naturalWidth} x ${sourceImage.naturalHeight}`;
+
+            
+            pdfOutput.textContent = 'Click "Apply Equalization" to see the data.';
+            cdfOutput.textContent = '...';
+            lutOutput.textContent = '...';
+            formulaBreakdown.textContent = '';
+            
+            interactiveCard.classList.add('hidden');
+            pixelTracer.disabled = true;
+            
+            // Reset step highlights
+            stepCards.forEach(card => card.classList.remove('active'));
+            document.getElementById('step-intro').classList.add('active');
+
+            // Redraw original histogram without highlights
+            const histogram = calculateHistogram(originalImageData);
+            drawHistogram(originalHistCtx, originalHistCanvas, histogram);
+
+            // Reset buttons
+            equalizeBtn.disabled = false;
+            resetBtn.disabled = true;
+        });
+
+        window.onload = () => { drawUploadPrompt(); };
+    </script>
+</body>
+</html>
