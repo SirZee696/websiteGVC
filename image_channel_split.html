@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive RGB Color Channel Splitter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* bg-gray-900 */
+        }
+        canvas {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.75rem; /* rounded-xl */
+            background-color: #1f2937; /* bg-gray-800 */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .canvas-container {
+            position: relative;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            background-color: #1f2937;
+        }
+        .canvas-label {
+            transition: all 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="text-gray-200">
+
+    <div class="min-h-screen flex flex-col items-center justify-center p-4 md:p-8">
+        <header class="w-full max-w-5xl mx-auto text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-2">RGB Color Channel Explorer</h1>
+            <p class="text-lg md:text-xl text-gray-400 max-w-3xl mx-auto">
+                See how digital images are composed of three primary color channels: Red, Green, and Blue. Upload your own image to see it split apart!
+            </p>
+        </header>
+
+        <main class="w-full max-w-6xl mx-auto flex flex-col items-center">
+            <!-- Action Bar: File Upload -->
+            <div class="mb-8 p-4 bg-gray-800 rounded-xl shadow-lg">
+                <label for="image-upload" class="cursor-pointer bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105">
+                    Upload Your Image
+                </label>
+                <input id="image-upload" type="file" accept="image/*" class="hidden">
+            </div>
+
+            <!-- Canvas Grid -->
+            <div id="loader" class="hidden text-center my-8">
+                <svg class="animate-spin h-8 w-8 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="mt-2 text-gray-400">Processing image...</p>
+            </div>
+            
+            <div id="canvas-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 w-full">
+                <!-- Original Image -->
+                <div class="canvas-container">
+                    <canvas id="original-canvas"></canvas>
+                    <h2 class="canvas-label absolute bottom-4 left-4 text-xl font-bold bg-black bg-opacity-50 px-3 py-1 rounded-lg">Original</h2>
+                </div>
+
+                <!-- Red Channel -->
+                <div class="canvas-container border-2 border-red-500/50">
+                    <canvas id="red-canvas"></canvas>
+                    <h2 class="canvas-label absolute bottom-4 left-4 text-xl font-bold text-red-400 bg-black bg-opacity-50 px-3 py-1 rounded-lg">Red Channel</h2>
+                </div>
+
+                <!-- Green Channel -->
+                <div class="canvas-container border-2 border-green-500/50">
+                    <canvas id="green-canvas"></canvas>
+                    <h2 class="canvas-label absolute bottom-4 left-4 text-xl font-bold text-green-400 bg-black bg-opacity-50 px-3 py-1 rounded-lg">Green Channel</h2>
+                </div>
+
+                <!-- Blue Channel -->
+                <div class="canvas-container border-2 border-blue-500/50">
+                    <canvas id="blue-canvas"></canvas>
+                    <h2 class="canvas-label absolute bottom-4 left-4 text-xl font-bold text-blue-400 bg-black bg-opacity-50 px-3 py-1 rounded-lg">Blue Channel</h2>
+                </div>
+            </div>
+
+            <!-- Error Message Box -->
+            <div id="error-box" class="hidden mt-8 w-full max-w-md bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded-lg relative" role="alert">
+                <strong class="font-bold">Error:</strong>
+                <span class="block sm:inline" id="error-message">Something went wrong.</span>
+            </div>
+        </main>
+
+        <footer class="w-full max-w-5xl mx-auto text-center mt-12 text-gray-500">
+            <button onclick="window.history.back()" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105 mb-6 cursor-pointer">
+                &larr; Go Back
+            </button>
+            <p>Built with Gemini</p>
+        </footer>
+    </div>
+
+    <script>
+        const imageUpload = document.getElementById('image-upload');
+        const loader = document.getElementById('loader');
+        const canvasGrid = document.getElementById('canvas-grid');
+        const errorBox = document.getElementById('error-box');
+        const errorMessage = document.getElementById('error-message');
+
+        const originalCanvas = document.getElementById('original-canvas');
+        const redCanvas = document.getElementById('red-canvas');
+        const greenCanvas = document.getElementById('green-canvas');
+        const blueCanvas = document.getElementById('blue-canvas');
+
+        const originalCtx = originalCanvas.getContext('2d');
+        const redCtx = redCanvas.getContext('2d');
+        const greenCtx = greenCanvas.getContext('2d');
+        const blueCtx = blueCanvas.getContext('2d');
+
+        // --- Event Listeners ---
+
+        // Listen for user file upload
+        imageUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    processImage(event.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Load a default image on page startup
+        window.onload = () => {
+            // A colorful parrot image is great for demonstration
+            // Using a cross-origin friendly image link
+            const defaultImageUrl = 'https://images.pexels.com/photos/1049626/pexels-photo-1049626.jpeg?auto=compress&cs=tinysrgb&w=800';
+            const img = new Image();
+            img.crossOrigin = "Anonymous"; // Important for loading images from other domains
+            img.src = defaultImageUrl;
+            
+            img.onload = () => processImage(img.src, true);
+            img.onerror = () => {
+                // Fallback if the default image fails to load
+                displayError('The default image could not be loaded. Please upload your own.');
+                const placeholderUrl = `https://placehold.co/800x600/111827/9CA3AF?text=Image+Load+Failed`;
+                processImage(placeholderUrl);
+            };
+        };
+        
+        // --- Core Functions ---
+
+        /**
+         * Processes an image from a source URL, draws it, and splits its channels.
+         * @param {string} src - The image source (data URL or external URL).
+         * @param {boolean} isCrossOrigin - Flag if the image is from another domain.
+         */
+        function processImage(src, isCrossOrigin = false) {
+            showLoader(true);
+            hideError();
+            
+            const img = new Image();
+            if (isCrossOrigin) {
+                img.crossOrigin = "Anonymous";
+            }
+            img.src = src;
+
+            img.onload = () => {
+                const w = img.width;
+                const h = img.height;
+
+                // 1. Set all canvases to the image's dimensions
+                [originalCanvas, redCanvas, greenCanvas, blueCanvas].forEach(canvas => {
+                    canvas.width = w;
+                    canvas.height = h;
+                });
+
+                // 2. Draw the original image
+                originalCtx.drawImage(img, 0, 0);
+
+                // 3. Get pixel data from the original image
+                try {
+                    const imageData = originalCtx.getImageData(0, 0, w, h);
+                    const data = imageData.data;
+
+                    // 4. Create new image data objects for each channel
+                    const redImageData = redCtx.createImageData(w, h);
+                    const greenImageData = greenCtx.createImageData(w, h);
+                    const blueImageData = blueCtx.createImageData(w, h);
+                    
+                    const redData = redImageData.data;
+                    const greenData = greenImageData.data;
+                    const blueData = blueImageData.data;
+
+                    // 5. Iterate through every pixel and split the channels
+                    for (let i = 0; i < data.length; i += 4) {
+                        const r = data[i];
+                        const g = data[i + 1];
+                        const b = data[i + 2];
+                        const a = data[i + 3];
+
+                        // Red channel: (R, 0, 0, A)
+                        redData[i] = r;
+                        redData[i + 1] = 0;
+                        redData[i + 2] = 0;
+                        redData[i + 3] = a;
+                        
+                        // Green channel: (0, G, 0, A)
+                        greenData[i] = 0;
+                        greenData[i + 1] = g;
+                        greenData[i + 2] = 0;
+                        greenData[i + 3] = a;
+
+                        // Blue channel: (0, 0, B, A)
+                        blueData[i] = 0;
+                        blueData[i + 1] = 0;
+                        blueData[i + 2] = b;
+                        blueData[i + 3] = a;
+                    }
+                    
+                    // 6. Put the new pixel data onto their respective canvases
+                    redCtx.putImageData(redImageData, 0, 0);
+                    greenCtx.putImageData(greenImageData, 0, 0);
+                    blueCtx.putImageData(blueImageData, 0, 0);
+                    
+                } catch (e) {
+                    console.error(e);
+                    // This error often happens due to CORS policy if an image is loaded
+                    // from a different domain without crossOrigin="Anonymous"
+                    displayError('Could not process the image due to security restrictions (CORS). Try another image or download and re-upload it.');
+                } finally {
+                     showLoader(false);
+                }
+            };
+            
+            img.onerror = () => {
+                showLoader(false);
+                displayError('The selected file could not be read as an image. Please try a different file.');
+            };
+        }
+
+        // --- UI Helper Functions ---
+
+        /**
+         * Shows or hides the loading indicator and main content.
+         * @param {boolean} isLoading - True to show loader, false to show content.
+         */
+        function showLoader(isLoading) {
+            if (isLoading) {
+                loader.classList.remove('hidden');
+                canvasGrid.classList.add('hidden');
+            } else {
+                loader.classList.add('hidden');
+                canvasGrid.classList.remove('hidden');
+            }
+        }
+        
+        /**
+         * Displays an error message to the user.
+         * @param {string} msg - The error message to display.
+         */
+        function displayError(msg) {
+            errorMessage.textContent = msg;
+            errorBox.classList.remove('hidden');
+        }
+
+        /**
+         * Hides the error message box.
+         */
+        function hideError() {
+            errorBox.classList.add('hidden');
+        }
+
+    </script>
+</body>
+</html>
+
