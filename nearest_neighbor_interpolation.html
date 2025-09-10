@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Nearest Neighbor Interpolation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        canvas {
+            cursor: crosshair;
+            image-rendering: pixelated; /* Ensures crisp pixels on the destination canvas */
+        }
+        .info-box {
+            transition: all 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-300 flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-6xl mx-auto bg-slate-800 rounded-2xl shadow-2xl p-6 md:p-8">
+        
+        <!-- Header -->
+        <header class="text-center mb-6 border-b border-slate-700 pb-4">
+            <h1 class="text-3xl md:text-4xl font-bold text-white">Nearest Neighbor Interpolation</h1>
+            <p class="mt-2 text-lg text-slate-400">An interactive simulation of image upscaling.</p>
+        </header>
+
+        <!-- Main Content -->
+        <main>
+            <!-- Explanation Section -->
+            <div class="mb-8 p-6 bg-slate-900/50 rounded-lg">
+                <h2 class="text-2xl font-semibold text-cyan-400 mb-3">How it Works</h2>
+                <p class="text-slate-300 leading-relaxed">
+                    Nearest Neighbor is the simplest way to resize an image. To find the color for a new pixel in the upscaled image, we look at the original image and find the single closest pixel. We then just copy its color! This process is fast, but it often results in a "blocky" or "pixelated" look, which you can see in the simulation below.
+                </p>
+                <div class="mt-4 p-4 bg-slate-800 border border-slate-700 rounded-md">
+                    <h3 class="text-lg font-medium text-slate-300 mb-2 text-center">The Live Formula</h3>
+                    <p class="text-lg font-mono text-cyan-300 tracking-wider text-center">
+                        P<sub>out</sub>(<span id="f-dest-x" class="text-yellow-300 w-8 inline-block text-center">x</span>, <span id="f-dest-y" class="text-yellow-300 w-8 inline-block text-center">y</span>) = P<sub>in</sub>( <span id="f-src-x" class="text-lime-300 w-8 inline-block text-center">srcX</span>, <span id="f-src-y" class="text-lime-300 w-8 inline-block text-center">srcY</span> )
+                    </p>
+                    <div class="mt-3 pt-3 border-t border-slate-700/50 text-sm text-slate-400 space-y-1 font-mono">
+                        <p>
+                            <span class="text-lime-300 w-16 inline-block">srcX</span> = floor( <span id="f-dest-x-calc" class="text-yellow-300 w-8 inline-block text-center">x</span> / <span id="f-scale-1" class="text-pink-400 w-8 inline-block text-center">scale</span> ) = <span id="f-src-x-calc" class="text-lime-300 w-8 inline-block text-center">?</span>
+                        </p>
+                        <p>
+                            <span class="text-lime-300 w-16 inline-block">srcY</span> = floor( <span id="f-dest-y-calc" class="text-yellow-300 w-8 inline-block text-center">y</span> / <span id="f-scale-2" class="text-pink-400 w-8 inline-block text-center">scale</span> ) = <span id="f-src-y-calc" class="text-lime-300 w-8 inline-block text-center">?</span>
+                        </p>
+                    </div>
+                </div>
+                <p class="mt-4 text-slate-300 leading-relaxed font-medium">
+                    <span class="text-white font-semibold">Try it out:</span> Click and drag on the <span class="text-yellow-400">'Source Grid'</span> to draw. Hover over the <span class="text-green-400">'Upscaled Output'</span> to see the formula update.
+                </p>
+            </div>
+
+            <!-- Interactive Visualization -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                <!-- Source Canvas (Left Side) -->
+                <div class="flex flex-col items-center">
+                    <h3 class="text-xl font-semibold mb-3 text-yellow-400">1. Source Grid (2x2)</h3>
+                    <div class="flex flex-col items-center">
+                        <div id="sourceXAxis" class="flex text-xs text-slate-500 h-6 w-[240px] pl-2 items-center"></div>
+                        <div class="flex">
+                            <div id="sourceYAxis" class="flex flex-col text-xs text-slate-500 w-6 pr-1"></div>
+                            <div class="bg-slate-700 p-2 rounded-lg shadow-inner">
+                                 <canvas id="sourceCanvas" width="240" height="240" class="rounded-md"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Destination Canvas (Right Side) -->
+                <div class="flex flex-col items-center">
+                    <h3 class="text-xl font-semibold mb-3 text-green-400">2. Upscaled Output <span id="destGridSizeLabel"></span></h3>
+                    <div class="flex flex-col items-center">
+                        <div id="destXAxis" class="flex text-xs text-slate-500 h-6 w-[240px] pl-2 items-center"></div>
+                        <div class="flex">
+                            <div id="destYAxis" class="flex flex-col text-xs text-slate-500 w-6 pr-1"></div>
+                            <div class="bg-slate-700 p-2 rounded-lg shadow-inner">
+                                <canvas id="destCanvas" width="240" height="240" class="rounded-md"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Controls -->
+            <div class="mt-8 pt-6 border-t border-slate-700 flex flex-col md:flex-row items-center justify-center gap-6 md:gap-10">
+                <div class="flex items-center gap-4">
+                    <label for="colorPicker" class="font-medium text-white">Draw Color:</label>
+                    <input type="color" id="colorPicker" value="#34D399" class="w-12 h-12 p-1 bg-slate-700 rounded-md cursor-pointer">
+                </div>
+                <div class="flex flex-col items-center w-full md:w-auto">
+                     <label for="scaleSlider" class="font-medium text-white mb-2">Scaled Factor: <span id="scaleValue" class="font-bold text-cyan-400">4x</span></label>
+                     <input type="range" id="scaleSlider" min="2" max="8" value="4" class="w-64 accent-cyan-500 cursor-pointer">
+                </div>
+                <button id="clearButton" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-colors duration-200">
+                    Clear Grid
+                </button>
+            </div>
+            
+            <!-- Information Box for Hover -->
+            <div id="infoBox" class="info-box fixed bg-slate-900 border border-slate-600 p-3 rounded-lg shadow-lg text-sm pointer-events-none opacity-0 -translate-y-4">
+                <!-- Content will be injected by JavaScript -->
+            </div>
+
+        </main>
+    </div>
+    
+    <div class="w-full max-w-6xl mx-auto mt-6 text-center">
+        <button onclick="history.back()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold py-2 px-6 rounded-lg transition-colors duration-200">
+            &larr; Back
+        </button>
+    </div>
+
+    <footer class="text-center mt-8 text-slate-500">
+        <p>A Gemini Creation</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Canvas and context setup
+            const sourceCanvas = document.getElementById('sourceCanvas');
+            const sourceCtx = sourceCanvas.getContext('2d');
+            const destCanvas = document.getElementById('destCanvas');
+            const destCtx = destCanvas.getContext('2d');
+
+            // Controls
+            const colorPicker = document.getElementById('colorPicker');
+            const scaleSlider = document.getElementById('scaleSlider');
+            const scaleValueSpan = document.getElementById('scaleValue');
+            const clearButton = document.getElementById('clearButton');
+            const infoBox = document.getElementById('infoBox');
+
+            // Formula elements
+            const f_dest_x = document.getElementById('f-dest-x');
+            const f_dest_y = document.getElementById('f-dest-y');
+            const f_src_x = document.getElementById('f-src-x');
+            const f_src_y = document.getElementById('f-src-y');
+            const f_dest_x_calc = document.getElementById('f-dest-x-calc');
+            const f_dest_y_calc = document.getElementById('f-dest-y-calc');
+            const f_scale_1 = document.getElementById('f-scale-1');
+            const f_scale_2 = document.getElementById('f-scale-2');
+            const f_src_x_calc = document.getElementById('f-src-x-calc');
+            const f_src_y_calc = document.getElementById('f-src-y-calc');
+
+            // Axis elements
+            const sourceXAxis = document.getElementById('sourceXAxis');
+            const sourceYAxis = document.getElementById('sourceYAxis');
+            const destXAxis = document.getElementById('destXAxis');
+            const destYAxis = document.getElementById('destYAxis');
+
+
+            // --- Configuration ---
+            const SOURCE_GRID_SIZE = 2;
+            const sourcePixelSize = sourceCanvas.width / SOURCE_GRID_SIZE;
+            const DEFAULT_COLOR = '#1E293B';
+            let scaleFactor = parseInt(scaleSlider.value, 10);
+            
+            // Data model for our source grid
+            let sourceGrid = Array(SOURCE_GRID_SIZE).fill().map(() => Array(SOURCE_GRID_SIZE).fill(DEFAULT_COLOR)); // Start with dark slate color
+
+            // --- State ---
+            let isDrawing = false;
+            let currentColor = colorPicker.value;
+
+            // --- Drawing Functions ---
+
+            function updateFormulaValues(destX, destY, sourceX, sourceY) {
+                f_dest_x.textContent = destX;
+                f_dest_y.textContent = destY;
+                f_src_x.textContent = sourceX;
+                f_src_y.textContent = sourceY;
+                f_dest_x_calc.textContent = destX;
+                f_dest_y_calc.textContent = destY;
+                f_src_x_calc.textContent = sourceX;
+                f_src_y_calc.textContent = sourceY;
+            }
+
+            function resetFormulaPlaceholders() {
+                f_dest_x.textContent = 'x';
+                f_dest_y.textContent = 'y';
+                f_src_x.textContent = 'srcX';
+                f_src_y.textContent = 'srcY';
+                f_dest_x_calc.textContent = 'x';
+                f_dest_y_calc.textContent = 'y';
+                f_src_x_calc.textContent = '?';
+                f_src_y_calc.textContent = '?';
+            }
+
+            function updateFormulaScale(scale) {
+                f_scale_1.textContent = scale;
+                f_scale_2.textContent = scale;
+            }
+
+            function drawAxes() {
+                // Source Axes (static)
+                sourceXAxis.innerHTML = '';
+                sourceYAxis.innerHTML = '';
+                for (let i = 0; i < SOURCE_GRID_SIZE; i++) {
+                    const xLabel = document.createElement('span');
+                    xLabel.textContent = i;
+                    xLabel.style.width = `${sourcePixelSize}px`;
+                    xLabel.style.textAlign = 'left';
+                    sourceXAxis.appendChild(xLabel);
+
+                    const yLabel = document.createElement('span');
+                    yLabel.textContent = i;
+                    yLabel.style.height = `${sourcePixelSize}px`;
+                    yLabel.style.display = 'flex';
+                    yLabel.style.alignItems = 'flex-start';
+                    yLabel.style.justifyContent = 'center';
+                    sourceYAxis.appendChild(yLabel);
+                }
+
+                // Destination Axes (dynamic)
+                destXAxis.innerHTML = '';
+                destYAxis.innerHTML = '';
+                const destGridDim = SOURCE_GRID_SIZE * scaleFactor;
+                
+                // Don't draw labels if they become too crowded
+                if (destGridDim > 20) {
+                     destXAxis.innerHTML = '...';
+                     destYAxis.innerHTML = '<div class="transform -rotate-90">...</div>';
+                     return;
+                }
+
+                for (let i = 0; i < destGridDim; i++) {
+                    const destPixelSize = destCanvas.width / destGridDim;
+                    const xLabel = document.createElement('span');
+                    xLabel.textContent = i;
+                    xLabel.style.width = `${destPixelSize}px`;
+                    xLabel.style.textAlign = 'left';
+                    destXAxis.appendChild(xLabel);
+
+                    const yLabel = document.createElement('span');
+                    yLabel.textContent = i;
+                    yLabel.style.height = `${destPixelSize}px`;
+                    yLabel.style.display = 'flex';
+                    yLabel.style.alignItems = 'flex-start';
+                    yLabel.style.justifyContent = 'center';
+                    destYAxis.appendChild(yLabel);
+                }
+            }
+
+            function drawSourceGrid() {
+                sourceCtx.clearRect(0, 0, sourceCanvas.width, sourceCanvas.height);
+                for (let y = 0; y < SOURCE_GRID_SIZE; y++) {
+                    for (let x = 0; x < SOURCE_GRID_SIZE; x++) {
+                        sourceCtx.fillStyle = sourceGrid[y][x];
+                        sourceCtx.fillRect(x * sourcePixelSize, y * sourcePixelSize, sourcePixelSize, sourcePixelSize);
+                    }
+                }
+                // Draw grid lines
+                sourceCtx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+                sourceCtx.lineWidth = 1;
+                for (let i = 0; i <= SOURCE_GRID_SIZE; i++) {
+                    sourceCtx.beginPath();
+                    sourceCtx.moveTo(i * sourcePixelSize, 0);
+                    sourceCtx.lineTo(i * sourcePixelSize, sourceCanvas.height);
+                    sourceCtx.stroke();
+                    sourceCtx.beginPath();
+                    sourceCtx.moveTo(0, i * sourcePixelSize);
+                    sourceCtx.lineTo(sourceCanvas.width, i * sourcePixelSize);
+                    sourceCtx.stroke();
+                }
+            }
+
+            function nearestNeighborInterpolation() {
+                const canvasSize = destCanvas.width;
+                destCtx.imageSmoothingEnabled = false;
+                destCtx.clearRect(0, 0, canvasSize, canvasSize);
+
+                const destGridDim = SOURCE_GRID_SIZE * scaleFactor;
+                const destPixelSize = canvasSize / destGridDim;
+
+                // Loop through each "pixel" of the destination grid
+                for (let y = 0; y < destGridDim; y++) {
+                    for (let x = 0; x < destGridDim; x++) {
+                        const sourceX = Math.floor(x / scaleFactor);
+                        const sourceY = Math.floor(y / scaleFactor);
+                        const color = sourceGrid[sourceY][sourceX];
+                        destCtx.fillStyle = color;
+                        destCtx.fillRect(x * destPixelSize, y * destPixelSize, destPixelSize, destPixelSize);
+                    }
+                }
+                
+                // Draw a fine grid for each new pixel
+                destCtx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+                destCtx.lineWidth = 1;
+                if (scaleFactor <= 16) {
+                    for (let i = 0; i <= destGridDim; i++) {
+                        destCtx.beginPath();
+                        destCtx.moveTo(i * destPixelSize, 0);
+                        destCtx.lineTo(i * destPixelSize, canvasSize);
+                        destCtx.stroke();
+                        destCtx.beginPath();
+                        destCtx.moveTo(0, i * destPixelSize);
+                        destCtx.lineTo(canvasSize, i * destPixelSize);
+                        destCtx.stroke();
+                    }
+                }
+                
+                const sourceOverlayBlockSize = canvasSize / SOURCE_GRID_SIZE;
+
+                // Draw highlight for any "drawn" pixel
+                for (let y = 0; y < SOURCE_GRID_SIZE; y++) {
+                    for (let x = 0; x < SOURCE_GRID_SIZE; x++) {
+                        if (sourceGrid[y][x] !== DEFAULT_COLOR) {
+                            destCtx.strokeStyle = '#FFD700'; // A bright yellow
+                            destCtx.lineWidth = 3;
+                            destCtx.strokeRect(
+                                x * sourceOverlayBlockSize + destCtx.lineWidth / 2, 
+                                y * sourceOverlayBlockSize + destCtx.lineWidth / 2, 
+                                sourceOverlayBlockSize - destCtx.lineWidth, 
+                                sourceOverlayBlockSize - destCtx.lineWidth
+                            );
+                        }
+                    }
+                }
+
+                // Draw the original source grid overlay with a thicker, more prominent line on top of highlights
+                destCtx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+                destCtx.lineWidth = 2.5;
+                for (let i = 0; i <= SOURCE_GRID_SIZE; i++) {
+                    destCtx.beginPath();
+                    destCtx.moveTo(i * sourceOverlayBlockSize, 0);
+                    destCtx.lineTo(i * sourceOverlayBlockSize, canvasSize);
+                    destCtx.stroke();
+                    destCtx.beginPath();
+                    destCtx.moveTo(0, i * sourceOverlayBlockSize);
+                    destCtx.lineTo(canvasSize, i * sourceOverlayBlockSize);
+                    destCtx.stroke();
+                }
+            }
+
+            // --- Event Handlers ---
+
+            function handleDraw(event) {
+                if (!isDrawing) return;
+
+                const rect = sourceCanvas.getBoundingClientRect();
+                const mouseX = event.clientX - rect.left;
+                const mouseY = event.clientY - rect.top;
+
+                const gridX = Math.floor(mouseX / sourcePixelSize);
+                const gridY = Math.floor(mouseY / sourcePixelSize);
+
+                if (gridX >= 0 && gridX < SOURCE_GRID_SIZE && gridY >= 0 && gridY < SOURCE_GRID_SIZE) {
+                    if (sourceGrid[gridY][gridX] !== currentColor) {
+                        sourceGrid[gridY][gridX] = currentColor;
+                        redrawAll();
+                    }
+                }
+            }
+            
+            function updateInfoBox(event) {
+                const rect = destCanvas.getBoundingClientRect();
+                const mouseX = event.clientX - rect.left;
+                const mouseY = event.clientY - rect.top;
+
+                const destGridDim = SOURCE_GRID_SIZE * scaleFactor;
+                const destPixelSize = destCanvas.width / destGridDim;
+
+                if (mouseX >= 0 && mouseX < destCanvas.width && mouseY >= 0 && mouseY < destCanvas.height) {
+                    const destX = Math.floor(mouseX / destPixelSize);
+                    const destY = Math.floor(mouseY / destPixelSize);
+                const sourceX = Math.floor(destX / scaleFactor);
+                const sourceY = Math.floor(destY / scaleFactor);
+                
+                updateFormulaValues(destX, destY, sourceX, sourceY);
+
+                infoBox.style.opacity = '1';
+                infoBox.style.transform = 'translateY(0)';
+                infoBox.style.left = `${event.pageX + 15}px`;
+                    infoBox.style.top = `${event.pageY + 15}px`;
+                    
+                    const color = sourceGrid[sourceY][sourceX];
+                    infoBox.innerHTML = `
+                        <div class="flex items-center gap-2">
+                           <div class="w-4 h-4 rounded" style="background-color: ${color};"></div>
+                           <div>
+                                <p>Dest Coords: (${destX}, ${destY})</p>
+                                <p class="font-bold text-cyan-400">Source: (${sourceX}, ${sourceY})</p>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    hideInfoBox();
+                }
+            }
+
+            function hideInfoBox() {
+                infoBox.style.opacity = '0';
+                infoBox.style.transform = 'translateY(-1rem)';
+                resetFormulaPlaceholders();
+            }
+
+            // --- Setup Event Listeners ---
+            
+            colorPicker.addEventListener('input', (e) => {
+                currentColor = e.target.value;
+            });
+
+            scaleSlider.addEventListener('input', (e) => {
+                scaleFactor = parseInt(e.target.value, 10);
+                scaleValueSpan.textContent = `${scaleFactor}x`;
+                updateFormulaScale(scaleFactor);
+                resetFormulaPlaceholders();
+                redrawAll();
+            });
+            
+            clearButton.addEventListener('click', () => {
+                 sourceGrid = Array(SOURCE_GRID_SIZE).fill().map(() => Array(SOURCE_GRID_SIZE).fill(DEFAULT_COLOR));
+                 redrawAll();
+            });
+            
+            sourceCanvas.addEventListener('mousedown', (e) => {
+                isDrawing = true;
+                handleDraw(e);
+            });
+            sourceCanvas.addEventListener('mouseup', () => {
+                isDrawing = false;
+            });
+            sourceCanvas.addEventListener('mouseleave', () => {
+                isDrawing = false;
+            });
+            
+            sourceCanvas.addEventListener('mousemove', handleDraw);
+            
+            destCanvas.addEventListener('mousemove', updateInfoBox);
+            destCanvas.addEventListener('mouseleave', hideInfoBox);
+
+            // --- Initialisation ---
+
+            function redrawAll() {
+                const destGridDim = SOURCE_GRID_SIZE * scaleFactor;
+                document.getElementById('destGridSizeLabel').textContent = `(${destGridDim}x${destGridDim})`;
+                drawAxes();
+                drawSourceGrid();
+                nearestNeighborInterpolation();
+            }
+
+            // Initial paint
+            updateFormulaScale(scaleFactor);
+            redrawAll();
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
