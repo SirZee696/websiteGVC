@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Linear Interpolation (Lerp)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .color-box {
+            width: 80px;
+            height: 80px;
+            border: 4px solid white;
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-300 flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-4xl mx-auto bg-slate-800 rounded-2xl shadow-2xl p-6 md:p-8">
+        
+        <header class="text-center mb-6 border-b border-slate-700 pb-4">
+            <h1 class="text-3xl md:text-4xl font-bold text-white">Linear Interpolation (Lerp)</h1>
+            <p class="mt-2 text-lg text-slate-400">Visualizing the blend between two values.</p>
+        </header>
+
+        <main>
+            <div class="mb-8 p-6 bg-slate-900/50 rounded-lg">
+                <h2 class="text-2xl font-semibold text-cyan-400 mb-3">How it Works</h2>
+                <p class="text-slate-300 leading-relaxed">
+                    Linear Interpolation, or "Lerp", is a fundamental operation in computer graphics. It finds a value that is some fraction of the way between two other values. We can use it to blend colors, move objects, or change any numerical property over time.
+                </p>
+                <div class="mt-4 p-4 bg-slate-800 border border-slate-700 rounded-md">
+                    <h3 class="text-lg font-medium text-slate-300 mb-2 text-center">The Formula</h3>
+                    <p class="text-2xl font-mono text-cyan-300 tracking-wider text-center">
+                        Result = A * (1 - t) + B * t
+                    </p>
+                    <div class="mt-3 pt-3 border-t border-slate-700/50 text-sm text-slate-400 space-y-1">
+                        <p><span class="font-semibold text-lime-300">A</span> is the starting value (or color).</p>
+                        <p><span class="font-semibold text-pink-400">B</span> is the ending value (or color).</p>
+                        <p><span class="font-semibold text-yellow-300">t</span> is the interpolation factor, a value from 0.0 to 1.0. At t=0, the result is A. At t=1, the result is B.</p>
+                    </div>
+                </div>
+
+                <div class="mt-4 p-4 bg-slate-900/70 rounded-lg border border-slate-700">
+                    <h3 class="text-lg font-medium text-slate-300 mb-3 text-center">Live Calculation</h3>
+                    <div class="text-base md:text-lg font-mono text-white tracking-wider text-center space-y-2">
+                        <p class="flex justify-center items-center">
+                            <span class="text-red-400 w-10 text-right">R</span> = 
+                            <span id="live-r-a" class="text-lime-300 w-12 text-center">0</span> * (1 - <span id="live-t1" class="text-yellow-300 w-12 text-center">0.0</span>) + 
+                            <span id="live-r-b" class="text-pink-400 w-12 text-center">0</span> * <span id="live-t2" class="text-yellow-300 w-12 text-center">0.0</span> = 
+                            <span id="live-r-result" class="text-red-400 w-12 text-center font-bold">0</span>
+                        </p>
+                        <p class="flex justify-center items-center">
+                            <span class="text-green-400 w-10 text-right">G</span> = 
+                            <span id="live-g-a" class="text-lime-300 w-12 text-center">0</span> * (1 - <span id="live-t3" class="text-yellow-300 w-12 text-center">0.0</span>) + 
+                            <span id="live-g-b" class="text-pink-400 w-12 text-center">0</span> * <span id="live-t4" class="text-yellow-300 w-12 text-center">0.0</span> = 
+                            <span id="live-g-result" class="text-green-400 w-12 text-center font-bold">0</span>
+                        </p>
+                        <p class="flex justify-center items-center">
+                            <span class="text-blue-400 w-10 text-right">B</span> = 
+                            <span id="live-b-a" class="text-lime-300 w-12 text-center">0</span> * (1 - <span id="live-t5" class="text-yellow-300 w-12 text-center">0.0</span>) + 
+                            <span id="live-b-b" class="text-pink-400 w-12 text-center">0</span> * <span id="live-t6" class="text-yellow-300 w-12 text-center">0.0</span> = 
+                            <span id="live-b-result" class="text-blue-400 w-12 text-center font-bold">0</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col items-center justify-center gap-8 mt-8">
+                <div class="flex items-center justify-around w-full max-w-lg">
+                    <div class="flex flex-col items-center gap-2">
+                        <label for="colorA" class="font-medium text-white">Color A</label>
+                        <input type="color" id="colorA" value="#FF5733" class="w-16 h-16 p-1 bg-slate-700 rounded-md cursor-pointer">
+                    </div>
+                    <div class="flex flex-col items-center gap-2">
+                        <label for="colorB" class="font-medium text-white">Color B</label>
+                        <input type="color" id="colorB" value="#33CFFF" class="w-16 h-16 p-1 bg-slate-700 rounded-md cursor-pointer">
+                    </div>
+                </div>
+
+                <div id="gradientBar" class="w-full h-16 rounded-lg border-2 border-slate-600 relative">
+                    <div id="t-marker" class="absolute top-[-10px] w-1 h-20 bg-white transform -translate-x-1/2"></div>
+                </div>
+
+                <div class="w-full max-w-lg">
+                    <label for="tSlider" class="font-medium text-white mb-2">Interpolation Factor (t): <span id="tValue" class="font-bold text-cyan-400">0.50</span></label>
+                    <input type="range" id="tSlider" min="0" max="1" step="0.01" value="0.5" class="w-full accent-cyan-500 cursor-pointer">
+                </div>
+
+                <div class="flex flex-col items-center gap-3 mt-4">
+                    <h3 class="text-xl font-semibold text-white">Interpolated Result</h3>
+                    <div id="resultBox" class="color-box shadow-lg"></div>
+                    <p id="resultHex" class="font-mono text-lg text-slate-400"></p>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <div class="w-full max-w-4xl mx-auto mt-6 text-center">
+        <button onclick="history.back()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold py-2 px-6 rounded-lg transition-colors duration-200">
+            &larr; Back
+        </button>
+    </div>
+
+    <footer class="text-center mt-8 text-slate-500">
+        <p>A Gemini Creation</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const colorAInput = document.getElementById('colorA');
+            const colorBInput = document.getElementById('colorB');
+            const tSlider = document.getElementById('tSlider');
+            const tValueSpan = document.getElementById('tValue');
+            const gradientBar = document.getElementById('gradientBar');
+            const resultBox = document.getElementById('resultBox');
+            const resultHex = document.getElementById('resultHex');
+            const tMarker = document.getElementById('t-marker');
+
+            // Live formula elements
+            const live_r_a = document.getElementById('live-r-a');
+            const live_g_a = document.getElementById('live-g-a');
+            const live_b_a = document.getElementById('live-b-a');
+            const live_r_b = document.getElementById('live-r-b');
+            const live_g_b = document.getElementById('live-g-b');
+            const live_b_b = document.getElementById('live-b-b');
+            const live_t1 = document.getElementById('live-t1');
+            const live_t2 = document.getElementById('live-t2');
+            const live_t3 = document.getElementById('live-t3');
+            const live_t4 = document.getElementById('live-t4');
+            const live_t5 = document.getElementById('live-t5');
+            const live_t6 = document.getElementById('live-t6');
+            const live_r_result = document.getElementById('live-r-result');
+            const live_g_result = document.getElementById('live-g-result');
+            const live_b_result = document.getElementById('live-b-result');
+
+            function hexToRgb(hex) {
+                let r = 0, g = 0, b = 0;
+                if (hex.length === 4) {
+                    r = parseInt(hex[1] + hex[1], 16);
+                    g = parseInt(hex[2] + hex[2], 16);
+                    b = parseInt(hex[3] + hex[3], 16);
+                } else if (hex.length === 7) {
+                    r = parseInt(hex.substring(1, 3), 16);
+                    g = parseInt(hex.substring(3, 5), 16);
+                    b = parseInt(hex.substring(5, 7), 16);
+                }
+                return { r, g, b };
+            }
+
+            function rgbToHex(r, g, b) {
+                const toHex = c => ('0' + Math.round(c).toString(16)).slice(-2);
+                return `#${toHex(r)}${toHex(g)}${toHex(b)}`.toUpperCase();
+            }
+
+            function lerp(start, end, t) {
+                return start * (1 - t) + end * t;
+            }
+
+            function updateVisualization() {
+                const colorA = colorAInput.value;
+                const colorB = colorBInput.value;
+                const t = parseFloat(tSlider.value);
+
+                const rgbA = hexToRgb(colorA);
+                const rgbB = hexToRgb(colorB);
+
+                const r = lerp(rgbA.r, rgbB.r, t);
+                const g = lerp(rgbA.g, rgbB.g, t);
+                const b = lerp(rgbA.b, rgbB.b, t);
+
+                const resultColor = rgbToHex(r, g, b);
+
+                // Update UI
+                tValueSpan.textContent = t.toFixed(2);
+                gradientBar.style.background = `linear-gradient(to right, ${colorA}, ${colorB})`;
+                
+                resultBox.style.backgroundColor = resultColor;
+                resultHex.textContent = resultColor;
+
+                tMarker.style.left = `${t * 100}%`;
+
+                // Update live formula
+                live_r_a.textContent = rgbA.r;
+                live_g_a.textContent = rgbA.g;
+                live_b_a.textContent = rgbA.b;
+
+                live_r_b.textContent = rgbB.r;
+                live_g_b.textContent = rgbB.g;
+                live_b_b.textContent = rgbB.b;
+
+                const t_text = t.toFixed(2);
+                live_t1.textContent = t_text;
+                live_t2.textContent = t_text;
+                live_t3.textContent = t_text;
+                live_t4.textContent = t_text;
+                live_t5.textContent = t_text;
+                live_t6.textContent = t_text;
+
+                live_r_result.textContent = Math.round(r);
+                live_g_result.textContent = Math.round(g);
+                live_b_result.textContent = Math.round(b);
+            }
+
+            colorAInput.addEventListener('input', updateVisualization);
+            colorBInput.addEventListener('input', updateVisualization);
+            tSlider.addEventListener('input', updateVisualization);
+
+            // Initial call
+            updateVisualization();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Bilinear Interpolation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        canvas {
+            cursor: crosshair;
+            image-rendering: pixelated; /* Ensures crisp pixels on the destination canvas */
+        }
+        .info-box {
+            transition: all 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-300 flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-6xl mx-auto bg-slate-800 rounded-2xl shadow-2xl p-6 md:p-8">
+        
+        <!-- Header -->
+        <header class="text-center mb-6 border-b border-slate-700 pb-4">
+            <h1 class="text-3xl md:text-4xl font-bold text-white">Bilinear Interpolation</h1>
+            <p class="mt-2 text-lg text-slate-400">A simulation of a smoother image upscaling method.</p>
+        </header>
+
+        <!-- Main Content -->
+        <main>
+            <!-- Explanation Section -->
+            <div class="mb-8 p-6 bg-slate-900/50 rounded-lg">
+                <h2 class="text-2xl font-semibold text-cyan-400 mb-3">How it Works</h2>
+                <p class="text-slate-300 leading-relaxed">
+                    Bilinear interpolation provides smoother results than nearest neighbor. For each new pixel, it looks at the <strong>four</strong> closest pixels in the original image. It then calculates a weighted average of their colors based on how close they are. This blending of colors creates a smoother, less "blocky" image.
+                </p>
+                <div class="mt-4 p-4 bg-slate-800 border border-slate-700 rounded-md">
+                    <h3 class="text-lg font-medium text-slate-300 mb-2 text-center">The Formula</h3>
+                    <div class="text-sm font-mono text-cyan-300 space-y-2">
+                        <p>R<sub>1</sub> = lerp(Q<sub>11</sub>, Q<sub>21</sub>, x_diff)</p>
+                        <p>R<sub>2</sub> = lerp(Q<sub>12</sub>, Q<sub>22</sub>, x_diff)</p>
+                        <p>P<sub>out</sub> = lerp(R<sub>1</sub>, R<sub>2</sub>, y_diff)</p>
+                    </div>
+                    <div class="mt-3 pt-3 border-t border-slate-700/50 text-xs text-slate-400 space-y-1">
+                        <p><span class="font-semibold text-lime-300">lerp(a, b, t)</span> = a * (1 - t) + b * t</p>
+                        <p><span class="font-semibold text-yellow-300">x_diff</span> is the horizontal distance within the source grid.</p>
+                        <p><span class="font-semibold text-yellow-300">y_diff</span> is the vertical distance within the source grid.</p>
+                        <p><span class="font-semibold text-pink-400">Q<sub>11</sub>, Q<sub>12</sub>, Q<sub>21</sub>, Q<sub>22</sub></span> are the four nearest source pixels.</p>
+                    </div>
+                </div>
+                <div id="live-formula-container" class="mt-4 p-4 bg-slate-900/70 rounded-lg border border-slate-700">
+                    <h3 class="text-lg font-medium text-slate-300 mb-3 text-center">Live Calculation</h3>
+                    <p class="text-center text-sm text-slate-400 mb-2">This shows the calculation for the pixel you hover over.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm font-mono text-white tracking-wider text-center">
+                        <!-- Red Channel -->
+                        <div>
+                            <h4 class="font-semibold text-red-400 mb-2 border-b border-red-900 pb-1">Red</h4>
+                            <p>R1 = <span id="r-r1-val" class="text-orange-400 font-semibold">?</span></p>
+                            <p>R2 = <span id="r-r2-val" class="text-orange-400 font-semibold">?</span></p>
+                            <p class="font-bold mt-1">P = <span id="r-p-val" class="text-cyan-300 font-bold">?</span></p>
+                        </div>
+                        <!-- Green Channel -->
+                        <div>
+                            <h4 class="font-semibold text-green-400 mb-2 border-b border-green-900 pb-1">Green</h4>
+                            <p>R1 = <span id="g-r1-val" class="text-orange-400 font-semibold">?</span></p>
+                            <p>R2 = <span id="g-r2-val" class="text-orange-400 font-semibold">?</span></p>
+                            <p class="font-bold mt-1">P = <span id="g-p-val" class="text-cyan-300 font-bold">?</span></p>
+                        </div>
+                        <!-- Blue Channel -->
+                        <div>
+                            <h4 class="font-semibold text-blue-400 mb-2 border-b border-blue-900 pb-1">Blue</h4>
+                            <p>R1 = <span id="b-r1-val" class="text-orange-400 font-semibold">?</span></p>
+                            <p>R2 = <span id="b-r2-val" class="text-orange-400 font-semibold">?</span></p>
+                            <p class="font-bold mt-1">P = <span id="b-p-val" class="text-cyan-300 font-bold">?</span></p>
+                        </div>
+                    </div>
+                     <div class="mt-4 pt-3 border-t border-slate-700/50 text-xs text-slate-400 space-y-1 text-center">
+                        <p>R1 = lerp(Q11, Q21, <span id="x-diff-val" class="text-yellow-300 font-mono">?</span>)</p>
+                        <p>R2 = lerp(Q12, Q22, <span id="x-diff-val2" class="text-yellow-300 font-mono">?</span>)</p>
+                        <p>P = lerp(R1, R2, <span id="y-diff-val" class="text-yellow-300 font-mono">?</span>)</p>
+                    </div>
+                </div>
+                <p class="mt-4 text-slate-300 leading-relaxed font-medium">
+                    <span class="text-white font-semibold">Try it out:</span> Click and drag on the <span class="text-yellow-400">'Source Grid'</span> to draw. The example calculation will update automatically.
+                </p>
+            </div>
+
+            <!-- Interactive Visualization -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                <!-- Source Canvas (Left Side) -->
+                <div class="flex flex-col items-center">
+                    <h3 class="text-xl font-semibold mb-3 text-yellow-400">1. Source Grid (2x2)</h3>
+                    <div class="flex flex-col items-center">
+                        <div class="bg-slate-700 p-2 rounded-lg shadow-inner">
+                             <canvas id="sourceCanvas" width="240" height="240" class="rounded-md"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Destination Canvas (Right Side) -->
+                <div class="flex flex-col items-center">
+                    <h3 class="text-xl font-semibold mb-3 text-green-400">2. Upscaled Output <span id="destGridSizeLabel"></span></h3>
+                    <div class="flex items-start gap-4">
+                        <div class="flex flex-col items-center">
+                            <div class="bg-slate-700 p-2 rounded-lg shadow-inner">
+                                <canvas id="destCanvas" width="240" height="240" class="rounded-md"></canvas>
+                            </div>
+                        </div>
+                        <div id="coordsDisplay" class="p-4 bg-slate-900/50 rounded-lg w-48 mt-9">
+                            <h4 class="font-semibold text-cyan-400 mb-2 border-b border-slate-700 pb-1">Example Info</h4>
+                            <div class="space-y-1 text-sm mt-2">
+                                <p>Dest Coords:</p>
+                                <p id="dest-coords-display" class="font-mono text-lg text-white">(?, ?)</p>
+                                <p class="mt-2">Src Fraction:</p>
+                                <p id="source-coords-display" class="font-mono text-lg text-white">(?, ?)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Controls -->
+            <div class="mt-8 pt-6 border-t border-slate-700 flex flex-col md:flex-row items-center justify-center gap-6 md:gap-10">
+                <div class="flex items-center gap-4">
+                    <label for="colorPicker" class="font-medium text-white">Draw Color:</label>
+                    <input type="color" id="colorPicker" value="#34D399" class="w-12 h-12 p-1 bg-slate-700 rounded-md cursor-pointer">
+                </div>
+                <div class="flex flex-col items-center w-full md:w-auto">
+                     <label for="scaleSlider" class="font-medium text-white mb-2">Scale Factor: <span id="scaleValue" class="font-bold text-cyan-400">4x</span></label>
+                     <input type="range" id="scaleSlider" min="2" max="8" value="4" class="w-64 accent-cyan-500 cursor-pointer">
+                </div>
+                <button id="clearButton" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-colors duration-200">
+                    Clear Grid
+                </button>
+            </div>
+
+        </main>
+    </div>
+    
+    <div class="w-full max-w-6xl mx-auto mt-6 text-center">
+        <button onclick="history.back()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold py-2 px-6 rounded-lg transition-colors duration-200">
+            &larr; Back
+        </button>
+    </div>
+
+    <footer class="text-center mt-8 text-slate-500">
+        <p>A Gemini Creation</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sourceCanvas = document.getElementById('sourceCanvas');
+            const sourceCtx = sourceCanvas.getContext('2d');
+            const destCanvas = document.getElementById('destCanvas');
+            const destCtx = destCanvas.getContext('2d');
+
+            const colorPicker = document.getElementById('colorPicker');
+            const scaleSlider = document.getElementById('scaleSlider');
+            const scaleValueSpan = document.getElementById('scaleValue');
+            const clearButton = document.getElementById('clearButton');
+            
+            const destCoordsDisplay = document.getElementById('dest-coords-display');
+            const sourceCoordsDisplay = document.getElementById('source-coords-display');
+            const liveFormulaContainer = document.getElementById('live-formula-container');
+
+            // Live formula elements
+            const x_diff_val = document.getElementById('x-diff-val');
+            const x_diff_val2 = document.getElementById('x-diff-val2');
+            const y_diff_val = document.getElementById('y-diff-val');
+
+            const r_r1_val = document.getElementById('r-r1-val');
+            const r_r2_val = document.getElementById('r-r2-val');
+            const r_p_val = document.getElementById('r-p-val');
+            const g_r1_val = document.getElementById('g-r1-val');
+            const g_r2_val = document.getElementById('g-r2-val');
+            const g_p_val = document.getElementById('g-p-val');
+            const b_r1_val = document.getElementById('b-r1-val');
+            const b_r2_val = document.getElementById('b-r2-val');
+            const b_p_val = document.getElementById('b-p-val');
+
+
+            const SOURCE_GRID_SIZE = 2;
+            const sourcePixelSize = sourceCanvas.width / SOURCE_GRID_SIZE;
+            const DEFAULT_COLOR = '#1E293B';
+            let scaleFactor = parseInt(scaleSlider.value, 10);
+            
+            let sourceGrid = Array(SOURCE_GRID_SIZE).fill().map(() => Array(SOURCE_GRID_SIZE).fill(DEFAULT_COLOR));
+
+            let isDrawing = false;
+            let currentColor = colorPicker.value;
+
+            function drawSourceGrid() {
+                sourceCtx.clearRect(0, 0, sourceCanvas.width, sourceCanvas.height);
+                for (let y = 0; y < SOURCE_GRID_SIZE; y++) {
+                    for (let x = 0; x < SOURCE_GRID_SIZE; x++) {
+                        sourceCtx.fillStyle = sourceGrid[y][x];
+                        sourceCtx.fillRect(x * sourcePixelSize, y * sourcePixelSize, sourcePixelSize, sourcePixelSize);
+                    }
+                }
+                sourceCtx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+                sourceCtx.lineWidth = 1;
+                for (let i = 0; i <= SOURCE_GRID_SIZE; i++) {
+                    sourceCtx.beginPath();
+                    sourceCtx.moveTo(i * sourcePixelSize, 0);
+                    sourceCtx.lineTo(i * sourcePixelSize, sourceCanvas.height);
+                    sourceCtx.stroke();
+                    sourceCtx.beginPath();
+                    sourceCtx.moveTo(0, i * sourcePixelSize);
+                    sourceCtx.lineTo(sourceCanvas.width, i * sourcePixelSize);
+                    sourceCtx.stroke();
+                }
+            }
+
+            function hexToRgb(hex) {
+                let r = 0, g = 0, b = 0;
+                if (hex.length == 4) {
+                    r = "0x" + hex[1] + hex[1];
+                    g = "0x" + hex[2] + hex[2];
+                    b = "0x" + hex[3] + hex[3];
+                } else if (hex.length == 7) {
+                    r = "0x" + hex[1] + hex[2];
+                    g = "0x" + hex[3] + hex[4];
+                    b = "0x" + hex[5] + hex[6];
+                }
+                return { r: +r, g: +g, b: +b };
+            }
+
+            function rgbToHex(r, g, b) {
+                return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+            }
+
+            function lerp(start, end, t) {
+                return start * (1 - t) + end * t;
+            }
+
+            function bilinearInterpolation() {
+                const canvasSize = destCanvas.width;
+                destCtx.imageSmoothingEnabled = false; // We are doing it manually
+                destCtx.clearRect(0, 0, canvasSize, canvasSize);
+
+                const destGridDim = SOURCE_GRID_SIZE * scaleFactor;
+                const destPixelSize = canvasSize / destGridDim;
+
+                for (let y = 0; y < destGridDim; y++) {
+                    for (let x = 0; x < destGridDim; x++) {
+                        const srcX = x / scaleFactor;
+                        const srcY = y / scaleFactor;
+
+                        const x1 = Math.floor(srcX);
+                        const y1 = Math.floor(srcY);
+                        const x2 = Math.min(x1 + 1, SOURCE_GRID_SIZE - 1);
+                        const y2 = Math.min(y1 + 1, SOURCE_GRID_SIZE - 1);
+
+                        const q11 = hexToRgb(sourceGrid[y1][x1]);
+                        const q21 = hexToRgb(sourceGrid[y1][x2]);
+                        const q12 = hexToRgb(sourceGrid[y2][x1]);
+                        const q22 = hexToRgb(sourceGrid[y2][x2]);
+
+                        const x_diff = srcX - x1;
+                        const y_diff = srcY - y1;
+
+                        const r1 = lerp(q11.r, q21.r, x_diff);
+                        const g1 = lerp(q11.g, q21.g, x_diff);
+                        const b1 = lerp(q11.b, q21.b, x_diff);
+
+                        const r2 = lerp(q12.r, q22.r, x_diff);
+                        const g2 = lerp(q12.g, q22.g, x_diff);
+                        const b2 = lerp(q12.b, q22.b, x_diff);
+
+                        const r = Math.round(lerp(r1, r2, y_diff));
+                        const g = Math.round(lerp(g1, g2, y_diff));
+                        const b = Math.round(lerp(b1, b2, y_diff));
+
+                        destCtx.fillStyle = rgbToHex(r, g, b);
+                        destCtx.fillRect(x * destPixelSize, y * destPixelSize, destPixelSize, destPixelSize);
+                    }
+                }
+            }
+
+            function handleDraw(event) {
+                if (!isDrawing) return;
+                const rect = sourceCanvas.getBoundingClientRect();
+                const mouseX = event.clientX - rect.left;
+                const mouseY = event.clientY - rect.top;
+                const gridX = Math.floor(mouseX / sourcePixelSize);
+                const gridY = Math.floor(mouseY / sourcePixelSize);
+                if (gridX >= 0 && gridX < SOURCE_GRID_SIZE && gridY >= 0 && gridY < SOURCE_GRID_SIZE) {
+                    if (sourceGrid[gridY][gridX] !== currentColor) {
+                        sourceGrid[gridY][gridX] = currentColor;
+                        redrawAll();
+                    }
+                }
+            }
+
+            function updateLiveFormula(event) {
+                let destX, destY;
+                const destGridDim = SOURCE_GRID_SIZE * scaleFactor;
+                const destPixelSize = destCanvas.width / destGridDim;
+
+                if (event) {
+                    const rect = destCanvas.getBoundingClientRect();
+                    const mouseX = event.clientX - rect.left;
+                    const mouseY = event.clientY - rect.top;
+                    destX = Math.floor(mouseX / destPixelSize);
+                    destY = Math.floor(mouseY / destPixelSize);
+
+                    // Ensure coordinates are within bounds
+                    if (destX < 0 || destX >= destGridDim || destY < 0 || destY >= destGridDim) {
+                        updateLiveFormula(); // Call without event to reset to default
+                        return;
+                    }
+                } else {
+                    // Use a fixed, representative destination pixel for the static/default example
+                    destX = Math.floor(destGridDim / 2);
+                    destY = Math.floor(destGridDim / 2);
+                }
+
+                const srcX = destX / scaleFactor;
+                const srcY = destY / scaleFactor;
+
+                const x1 = Math.floor(srcX);
+                const y1 = Math.floor(srcY);
+                const x2 = Math.min(x1 + 1, SOURCE_GRID_SIZE - 1);
+                const y2 = Math.min(y1 + 1, SOURCE_GRID_SIZE - 1);
+
+                const q11 = hexToRgb(sourceGrid[y1][x1]);
+                const q21 = hexToRgb(sourceGrid[y1][x2]);
+                const q12 = hexToRgb(sourceGrid[y2][x1]);
+                const q22 = hexToRgb(sourceGrid[y2][x2]);
+
+                const x_diff = srcX - x1;
+                const y_diff = srcY - y1;
+
+                // Red channel
+                const r_r1 = lerp(q11.r, q21.r, x_diff);
+                const r_r2 = lerp(q12.r, q22.r, x_diff);
+                const r_p = lerp(r_r1, r_r2, y_diff);
+
+                // Green channel
+                const g_r1 = lerp(q11.g, q21.g, x_diff);
+                const g_r2 = lerp(q12.g, q22.g, x_diff);
+                const g_p = lerp(g_r1, g_r2, y_diff);
+
+                // Blue channel
+                const b_r1 = lerp(q11.b, q21.b, x_diff);
+                const b_r2 = lerp(q12.b, q22.b, x_diff);
+                const b_p = lerp(b_r1, b_r2, y_diff);
+
+                // Update displays
+                destCoordsDisplay.textContent = `(${destX}, ${destY})`;
+                sourceCoordsDisplay.textContent = `(${srcX.toFixed(2)}, ${srcY.toFixed(2)})`;
+                
+                x_diff_val.textContent = x_diff.toFixed(2);
+                x_diff_val2.textContent = x_diff.toFixed(2);
+                y_diff_val.textContent = y_diff.toFixed(2);
+
+                r_r1_val.textContent = Math.round(r_r1);
+                r_r2_val.textContent = Math.round(r_r2);
+                r_p_val.textContent = Math.round(r_p);
+
+                g_r1_val.textContent = Math.round(g_r1);
+                g_r2_val.textContent = Math.round(g_r2);
+                g_p_val.textContent = Math.round(g_p);
+
+                b_r1_val.textContent = Math.round(b_r1);
+                b_r2_val.textContent = Math.round(b_r2);
+                b_p_val.textContent = Math.round(b_p);
+            }
+
+
+            colorPicker.addEventListener('input', (e) => {
+                currentColor = e.target.value;
+                redrawAll();
+            });
+
+            scaleSlider.addEventListener('input', (e) => {
+                scaleFactor = parseInt(e.target.value, 10);
+                scaleValueSpan.textContent = `${scaleFactor}x`;
+                redrawAll();
+            });
+            
+            clearButton.addEventListener('click', () => {
+                 sourceGrid = Array(SOURCE_GRID_SIZE).fill().map(() => Array(SOURCE_GRID_SIZE).fill(DEFAULT_COLOR));
+                 redrawAll();
+            });
+            
+            sourceCanvas.addEventListener('mousedown', (e) => {
+                isDrawing = true;
+                handleDraw(e);
+            });
+            sourceCanvas.addEventListener('mouseup', () => { isDrawing = false; });
+            sourceCanvas.addEventListener('mouseleave', () => { isDrawing = false; });
+            sourceCanvas.addEventListener('mousemove', handleDraw);
+
+            destCanvas.addEventListener('mousemove', updateLiveFormula);
+            destCanvas.addEventListener('mouseleave', () => updateLiveFormula());
+
+            function redrawAll() {
+                const destGridDim = SOURCE_GRID_SIZE * scaleFactor;
+                document.getElementById('destGridSizeLabel').textContent = `(${destGridDim}x${destGridDim})`;
+                drawSourceGrid();
+                bilinearInterpolation();
+                updateLiveFormula(); // Update the static formula display
+            }
+
+            redrawAll();
+        });
+    </script>
+</body>
+</html>
