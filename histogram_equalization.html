@@ -116,7 +116,7 @@
                     <!-- Original Histogram -->
                     <div>
                         <h3 class="text-lg font-semibold mb-2 text-indigo-400">2. Original Histogram</h3>
-                        <canvas id="originalHistogram" width="256" height="100" class="w-full h-auto"></canvas>
+                        <canvas id="originalHistogram" width="256" height="150" class="w-full h-auto"></canvas>
                     </div>
 
                     <!-- Equalized Image -->
@@ -129,7 +129,7 @@
                     <!-- Equalized Histogram -->
                     <div>
                         <h3 class="text-lg font-semibold mb-2 text-green-400">5. Equalized Histogram</h3>
-                        <canvas id="equalizedHistogram" width="256" height="100" class="w-full h-auto"></canvas>
+                        <canvas id="equalizedHistogram" width="256" height="150" class="w-full h-auto"></canvas>
                     </div>
                 </div>
 
@@ -287,6 +287,8 @@
             originalHistCtx.clearRect(0, 0, originalHistCanvas.width, originalHistCanvas.height);
             equalizedCtx.clearRect(0, 0, equalizedCanvas.width, equalizedCanvas.height);
             equalizedHistCtx.clearRect(0, 0, equalizedHistCanvas.width, equalizedHistCanvas.height);
+            drawHistogram(originalHistCtx, originalHistCanvas, []);
+            drawHistogram(equalizedHistCtx, equalizedHistCanvas, []);
             originalDimensions.textContent = '';
             equalizedDimensions.textContent = '';
             stepCards.forEach(card => card.classList.remove('active'));
@@ -310,15 +312,66 @@
         function drawHistogram(ctx, canvas, histogram, highlightIndex = -1) {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             const maxVal = Math.max(...histogram);
-            const barWidth = canvas.width / histogram.length;
+
+            const padding = { top: 20, right: 10, bottom: 40, left: 45 };
+            const chartWidth = canvas.width - padding.left - padding.right;
+            const chartHeight = canvas.height - padding.top - padding.bottom;
+            
+            // Draw axes lines
+            ctx.beginPath();
+            ctx.strokeStyle = '#9ca3af'; // text-gray-400
+            ctx.lineWidth = 1;
+            ctx.moveTo(padding.left, padding.top);
+            ctx.lineTo(padding.left, canvas.height - padding.bottom);
+            ctx.lineTo(canvas.width - padding.right, canvas.height - padding.bottom);
+            ctx.stroke();
+
+            // Axes labels and ticks
+            ctx.fillStyle = '#d1d5db';
+            ctx.font = '12px Inter';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+
+            // X-axis labels
+            ctx.fillText('0', padding.left, canvas.height - padding.bottom + 8);
+            ctx.fillText('128', padding.left + chartWidth / 2, canvas.height - padding.bottom + 8);
+            ctx.fillText('255', canvas.width - padding.right, canvas.height - padding.bottom + 8);
+            ctx.fillText('Intensity', padding.left + chartWidth / 2, canvas.height - padding.bottom + 22);
+
+            // Y-axis labels
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('0', padding.left - 8, canvas.height - padding.bottom);
+
+            ctx.save();
+            ctx.translate(12, padding.top + chartHeight / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.textAlign = 'center';
+            ctx.fillText('Frequency', 0, 0);
+            ctx.restore();
+            
+            if (maxVal <= 0) return; // Don't draw bars or max value if histogram is empty
+
+            // Draw max Y value
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(maxVal.toLocaleString(), padding.left - 8, padding.top);
+
+            const barWidth = chartWidth / histogram.length;
             const normalColor = (ctx === equalizedHistCtx) ? '#22c55e' : '#6366f1';
             const highlightColor = '#f59e0b'; // amber-500
 
+            // Draw bars
             for (let i = 0; i < histogram.length; i++) {
                 if (histogram[i] === 0) continue;
-                const barHeight = (histogram[i] / maxVal) * canvas.height;
+                const barHeight = (histogram[i] / maxVal) * chartHeight;
                 ctx.fillStyle = (i === highlightIndex) ? highlightColor : normalColor;
-                ctx.fillRect(i * barWidth, canvas.height - barHeight, barWidth, barHeight);
+                ctx.fillRect(
+                    padding.left + i * barWidth,
+                    canvas.height - padding.bottom - barHeight,
+                    barWidth,
+                    barHeight
+                );
             }
         }
         
@@ -450,6 +503,8 @@
             // Clear equalization results
             equalizedCtx.clearRect(0, 0, equalizedCanvas.width, equalizedCanvas.height);
             equalizedHistCtx.clearRect(0, 0, equalizedHistCanvas.width, equalizedHistCanvas.height);
+            drawHistogram(equalizedHistCtx, equalizedHistCanvas, []);
+
             equalizedDimensions.textContent = `Dimensions: ${sourceImage.naturalWidth} x ${sourceImage.naturalHeight}`;
 
             
@@ -474,7 +529,12 @@
             resetBtn.disabled = true;
         });
 
-        window.onload = () => { drawUploadPrompt(); };
+        window.onload = () => { 
+            drawUploadPrompt(); 
+            drawHistogram(originalHistCtx, originalHistCanvas, []);
+            drawHistogram(equalizedHistCtx, equalizedHistCanvas, []);
+        };
     </script>
 </body>
 </html>
+
