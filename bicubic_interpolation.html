@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Bicubic Interpolation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        canvas {
+            cursor: crosshair;
+            image-rendering: pixelated; /* Ensures crisp pixels on the destination canvas */
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-300 flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-6xl mx-auto bg-slate-800 rounded-2xl shadow-2xl p-6 md:p-8">
+        
+        <!-- Header -->
+        <header class="text-center mb-6 border-b border-slate-700 pb-4">
+            <h1 class="text-3xl md:text-4xl font-bold text-white">Bicubic Interpolation</h1>
+            <p class="mt-2 text-lg text-slate-400">A simulation of a high-quality image upscaling method.</p>
+        </header>
+
+        <!-- Main Content -->
+        <main>
+            <!-- Explanation Section -->
+            <div class="mb-8 p-6 bg-slate-900/50 rounded-lg">
+                <h2 class="text-2xl font-semibold text-cyan-400 mb-3">How it Works</h2>
+                <p class="text-slate-300 leading-relaxed">
+                    Bicubic interpolation produces smoother and sharper results than bilinear interpolation by considering the <strong>16</strong> closest pixels (a 4x4 grid) in the original image. It uses a more complex polynomial function to calculate a weighted average of these pixels, which results in higher-quality upscaling with fewer artifacts.
+                </p>
+                <div class="mt-4 p-4 bg-slate-800 border border-slate-700 rounded-md">
+                    <h3 class="text-lg font-medium text-slate-300 mb-2 text-center">The Formula</h3>
+                    <div class="text-sm font-mono text-cyan-300 space-y-2 text-center">
+                        <p>Row<sub>1</sub> = Cubic(P<sub>00</sub>, P<sub>10</sub>, P<sub>20</sub>, P<sub>30</sub>, x_diff)</p>
+                        <p>Row<sub>2</sub> = Cubic(P<sub>01</sub>, P<sub>11</sub>, P<sub>21</sub>, P<sub>31</sub>, x_diff)</p>
+                        <p>Row<sub>3</sub> = Cubic(P<sub>02</sub>, P<sub>12</sub>, P<sub>22</sub>, P<sub>32</sub>, x_diff)</p>
+                        <p>Row<sub>4</sub> = Cubic(P<sub>03</sub>, P<sub>13</sub>, P<sub>23</sub>, P<sub>33</sub>, x_diff)</p>
+                        <p class="pt-2 mt-2 border-t border-slate-700">P<sub>out</sub> = Cubic(Row<sub>1</sub>, Row<sub>2</sub>, Row<sub>3</sub>, Row<sub>4</sub>, y_diff)</p>
+                    </div>
+                    <div class="mt-3 pt-3 border-t border-slate-700/50 text-xs text-slate-400 space-y-1">
+                        <p><span class="font-semibold text-lime-300">Cubic(p, t)</span> = p[1] + 0.5 * t * (p[2] - p[0] + t * (2*p[0] - 5*p[1] + 4*p[2] - p[3] + t*(3*(p[1] - p[2]) + p[3] - p[0])))</p>
+                        <p><span class="font-semibold text-yellow-300">x_diff</span> = (dest_x / scale) - floor(dest_x / scale)</p>
+                        <p><span class="font-semibold text-yellow-300">y_diff</span> = (dest_y / scale) - floor(dest_y / scale)</p>
+                        <p><span class="font-semibold text-pink-400">P<sub>ij</sub></span> are the 16 nearest source pixels.</p>
+                        <p><span class="font-semibold text-orange-400">Row<sub>1-4</sub></span> are the intermediate interpolated rows.</p>
+                        <p><span class="font-semibold text-cyan-300">P<sub>out</sub></span> is the final interpolated pixel color.</p>
+                    </div>
+                </div>
+                <div id="live-formula-container" class="mt-4 p-4 bg-slate-900/70 rounded-lg border border-slate-700">
+                    <h3 class="text-lg font-medium text-slate-300 mb-3 text-center">Live Calculation</h3>
+                    <p class="text-center text-sm text-slate-400 mb-2">This shows the calculation for the pixel you hover over.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm font-mono text-white tracking-wider text-center">
+                        <!-- Red Channel -->
+                        <div>
+                            <h4 class="font-semibold text-red-400 mb-2 border-b border-red-900 pb-1">Red</h4>
+                            <p class="font-bold mt-1">P_out = <span id="r-p-val" class="text-cyan-300 font-bold">?</span></p>
+                        </div>
+                        <!-- Green Channel -->
+                        <div>
+                            <h4 class="font-semibold text-green-400 mb-2 border-b border-green-900 pb-1">Green</h4>
+                            <p class="font-bold mt-1">P_out = <span id="g-p-val" class="text-cyan-300 font-bold">?</span></p>
+                        </div>
+                        <!-- Blue Channel -->
+                        <div>
+                            <h4 class="font-semibold text-blue-400 mb-2 border-b border-blue-900 pb-1">Blue</h4>
+                            <p class="font-bold mt-1">P_out = <span id="b-p-val" class="text-cyan-300 font-bold">?</span></p>
+                        </div>
+                    </div>
+                     <div class="mt-4 pt-3 border-t border-slate-700/50 text-xs text-slate-400 space-y-1 text-center">
+                        <p>x_diff: <span id="x-diff-val" class="text-yellow-300 font-mono">?</span></p>
+                        <p>y_diff: <span id="y-diff-val" class="text-yellow-300 font-mono">?</span></p>
+                    </div>
+                </div>
+                <p class="mt-4 text-slate-300 leading-relaxed font-medium">
+                    <span class="text-white font-semibold">Try it out:</span> Click and drag on the <span class="text-yellow-400">'Source Grid'</span> to draw. Hover over the output to see which 16 source pixels are being used.
+                </p>
+            </div>
+
+            <!-- Interactive Visualization -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                <!-- Source Canvas (Left Side) -->
+                <div class="flex flex-col items-center">
+                    <h3 class="text-xl font-semibold mb-3 text-yellow-400">1. Source Grid (4x4)</h3>
+                    <div class="relative w-[280px] h-[280px]">
+                        <div class="absolute top-10 left-10 bg-slate-700 p-2 rounded-lg shadow-inner">
+                             <canvas id="sourceCanvas" width="240" height="240" class="rounded-md"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Destination Canvas (Right Side) -->
+                <div class="flex flex-col items-center">
+                    <h3 class="text-xl font-semibold mb-3 text-green-400">2. Upscaled Output <span id="destGridSizeLabel"></span></h3>
+                     <div class="relative w-[280px] h-[280px]">
+                        <div class="absolute top-10 left-10 bg-slate-700 p-2 rounded-lg shadow-inner">
+                            <canvas id="destCanvas" width="240" height="240" class="rounded-md"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Controls -->
+            <div class="mt-8 pt-6 border-t border-slate-700 flex flex-col md:flex-row items-center justify-center gap-6 md:gap-10">
+                <div class="flex items-center gap-4">
+                    <label for="colorPicker" class="font-medium text-white">Draw Color:</label>
+                    <input type="color" id="colorPicker" value="#34D399" class="w-12 h-12 p-1 bg-slate-700 rounded-md cursor-pointer">
+                </div>
+                <div class="flex flex-col items-center w-full md:w-auto">
+                     <label for="scaleSlider" class="font-medium text-white mb-2">Scale Factor: <span id="scaleValue" class="font-bold text-cyan-400">4x</span></label>
+                     <input type="range" id="scaleSlider" min="2" max="8" value="4" class="w-64 accent-cyan-500 cursor-pointer">
+                </div>
+                <button id="clearButton" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-colors duration-200">
+                    Clear Grid
+                </button>
+            </div>
+
+        </main>
+    </div>
+    
+    <div class="w-full max-w-6xl mx-auto mt-6 text-center">
+        <button onclick="history.back()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold py-2 px-6 rounded-lg transition-colors duration-200">
+            &larr; Back
+        </button>
+    </div>
+
+    <footer class="text-center mt-8 text-slate-500">
+        <p>A Gemini Creation</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sourceCanvas = document.getElementById('sourceCanvas');
+            const sourceCtx = sourceCanvas.getContext('2d');
+            const destCanvas = document.getElementById('destCanvas');
+            const destCtx = destCanvas.getContext('2d');
+
+            const colorPicker = document.getElementById('colorPicker');
+            const scaleSlider = document.getElementById('scaleSlider');
+            const scaleValueSpan = document.getElementById('scaleValue');
+            const clearButton = document.getElementById('clearButton');
+            const rPVal = document.getElementById('r-p-val');
+            const gPVal = document.getElementById('g-p-val');
+            const bPVal = document.getElementById('b-p-val');
+            const xDiffVal = document.getElementById('x-diff-val');
+            const yDiffVal = document.getElementById('y-diff-val');
+            
+            const SOURCE_GRID_SIZE = 4;
+            const sourcePixelSize = sourceCanvas.width / SOURCE_GRID_SIZE;
+            const DEFAULT_COLOR = '#1E293B';
+            let scaleFactor = parseInt(scaleSlider.value, 10);
+            
+            let sourceGrid = Array(SOURCE_GRID_SIZE).fill().map(() => Array(SOURCE_GRID_SIZE).fill(DEFAULT_COLOR));
+
+            let isDrawing = false;
+            let currentColor = colorPicker.value;
+            let highlightedSourcePixels = null;
+
+            function getPixelColor(x, y, colors) {
+                x = Math.min(Math.max(x, 0), SOURCE_GRID_SIZE - 1);
+                y = Math.min(Math.max(y, 0), SOURCE_GRID_SIZE - 1);
+                return colors[y][x];
+            }
+
+            function updateLiveCalculation(event) {
+                const rect = destCanvas.getBoundingClientRect();
+                const destX = event.clientX - rect.left;
+                const destY = event.clientY - rect.top;
+
+                const scale = scaleSlider.value;
+                const srcX = destX / scale;
+                const srcY = destY / scale;
+
+                const x_int = Math.floor(srcX);
+                const y_int = Math.floor(srcY);
+                
+                const x_diff = srcX - x_int;
+                const y_diff = srcY - y_int;
+
+                xDiffVal.textContent = x_diff.toFixed(4);
+                yDiffVal.textContent = y_diff.toFixed(4);
+
+                highlightedSourcePixels = { x_start: x_int - 1, y_start: y_int - 1 };
+
+                const sourceColors = sourceGrid.map(row => row.map(hexToRgb));
+
+                let r_arr = [], g_arr = [], b_arr = [];
+
+                for (let i = 0; i < 4; i++) {
+                    const y_index = y_int - 1 + i;
+                    
+                    const p_r = [
+                        getPixelColor(x_int - 1, y_index, sourceColors).r,
+                        getPixelColor(x_int, y_index, sourceColors).r,
+                        getPixelColor(x_int + 1, y_index, sourceColors).r,
+                        getPixelColor(x_int + 2, y_index, sourceColors).r
+                    ];
+                    const p_g = [
+                        getPixelColor(x_int - 1, y_index, sourceColors).g,
+                        getPixelColor(x_int, y_index, sourceColors).g,
+                        getPixelColor(x_int + 1, y_index, sourceColors).g,
+                        getPixelColor(x_int + 2, y_index, sourceColors).g
+                    ];
+                    const p_b = [
+                        getPixelColor(x_int - 1, y_index, sourceColors).b,
+                        getPixelColor(x_int, y_index, sourceColors).b,
+                        getPixelColor(x_int + 1, y_index, sourceColors).b,
+                        getPixelColor(x_int + 2, y_index, sourceColors).b
+                    ];
+                    
+                    r_arr.push(cubicInterpolation(p_r, x_diff));
+                    g_arr.push(cubicInterpolation(p_g, x_diff));
+                    b_arr.push(cubicInterpolation(p_b, x_diff));
+                }
+
+                const finalR = Math.round(Math.max(0, Math.min(255, cubicInterpolation(r_arr, y_diff))));
+                const finalG = Math.round(Math.max(0, Math.min(255, cubicInterpolation(g_arr, y_diff))));
+                const finalB = Math.round(Math.max(0, Math.min(255, cubicInterpolation(b_arr, y_diff))));
+
+                rPVal.textContent = finalR;
+                gPVal.textContent = finalG;
+                bPVal.textContent = finalB;
+                
+                drawSourceGrid();
+            }
+
+            function clearLiveCalculation() {
+                highlightedSourcePixels = null;
+                rPVal.textContent = '?';
+                gPVal.textContent = '?';
+                bPVal.textContent = '?';
+                xDiffVal.textContent = '?';
+                yDiffVal.textContent = '?';
+                drawSourceGrid();
+            }
+
+            function drawSourceGrid() {
+                sourceCtx.clearRect(0, 0, sourceCanvas.width, sourceCanvas.height);
+                for (let y = 0; y < SOURCE_GRID_SIZE; y++) {
+                    for (let x = 0; x < SOURCE_GRID_SIZE; x++) {
+                        sourceCtx.fillStyle = sourceGrid[y][x];
+                        sourceCtx.fillRect(x * sourcePixelSize, y * sourcePixelSize, sourcePixelSize, sourcePixelSize);
+                    }
+                }
+
+                if (highlightedSourcePixels) {
+                    const { x_start, y_start } = highlightedSourcePixels;
+                    sourceCtx.strokeStyle = '#FBBF24'; // amber-400
+                    sourceCtx.lineWidth = 3;
+                    sourceCtx.strokeRect(x_start * sourcePixelSize, y_start * sourcePixelSize, sourcePixelSize * 4, sourcePixelSize * 4);
+                }
+
+                sourceCtx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                sourceCtx.lineWidth = 1;
+                for (let i = 0; i <= SOURCE_GRID_SIZE; i++) {
+                    sourceCtx.beginPath();
+                    sourceCtx.moveTo(i * sourcePixelSize, 0);
+                    sourceCtx.lineTo(i * sourcePixelSize, sourceCanvas.height);
+                    sourceCtx.stroke();
+                    sourceCtx.beginPath();
+                    sourceCtx.moveTo(0, i * sourcePixelSize);
+                    sourceCtx.lineTo(sourceCanvas.width, i * sourcePixelSize);
+                    sourceCtx.stroke();
+                }
+            }
+
+            function hexToRgb(hex) {
+                let r = 0, g = 0, b = 0;
+                if (hex.length == 4) {
+                    r = "0x" + hex[1] + hex[1];
+                    g = "0x" + hex[2] + hex[2];
+                    b = "0x" + hex[3] + hex[3];
+                } else if (hex.length == 7) {
+                    r = "0x" + hex[1] + hex[2];
+                    g = "0x" + hex[3] + hex[4];
+                    b = "0x" + hex[5] + hex[6];
+                }
+                return { r: +r, g: +g, b: +b };
+            }
+
+            function rgbToHex(r, g, b) {
+                r = Math.max(0, Math.min(255, Math.round(r)));
+                g = Math.max(0, Math.min(255, Math.round(g)));
+                b = Math.max(0, Math.min(255, Math.round(b)));
+                return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+            }
+
+            function cubicInterpolation(p, x) {
+                return p[1] + 0.5 * x * (p[2] - p[0] + x * (2.0 * p[0] - 5.0 * p[1] + 4.0 * p[2] - p[3] + x * (3.0 * (p[1] - p[2]) + p[3] - p[0])));
+            }
+
+            function bicubicInterpolation() {
+                const canvasSize = destCanvas.width;
+                destCtx.imageSmoothingEnabled = false;
+                destCtx.clearRect(0, 0, canvasSize, canvasSize);
+
+                const destGridDim = SOURCE_GRID_SIZE * scaleFactor;
+                const destPixelSize = canvasSize / destGridDim;
+
+                const sourceColors = sourceGrid.map(row => row.map(hexToRgb));
+
+                for (let y = 0; y < destGridDim; y++) {
+                    for (let x = 0; x < destGridDim; x++) {
+                        const srcX = x / scaleFactor;
+                        const srcY = y / scaleFactor;
+
+                        const x1 = Math.floor(srcX);
+                        const y1 = Math.floor(srcY);
+                        
+                        const x_diff = srcX - x1;
+                        const y_diff = srcY - y1;
+
+                        let r_arr = [], g_arr = [], b_arr = [];
+
+                        for (let i = 0; i < 4; i++) {
+                            const y_index = Math.min(Math.max(y1 - 1 + i, 0), SOURCE_GRID_SIZE - 1);
+                            
+                            const p_r = [
+                                sourceColors[y_index][Math.min(Math.max(x1 - 1, 0), SOURCE_GRID_SIZE - 1)].r,
+                                sourceColors[y_index][Math.min(Math.max(x1, 0), SOURCE_GRID_SIZE - 1)].r,
+                                sourceColors[y_index][Math.min(Math.max(x1 + 1, 0), SOURCE_GRID_SIZE - 1)].r,
+                                sourceColors[y_index][Math.min(Math.max(x1 + 2, 0), SOURCE_GRID_SIZE - 1)].r
+                            ];
+                            const p_g = [
+                                sourceColors[y_index][Math.min(Math.max(x1 - 1, 0), SOURCE_GRID_SIZE - 1)].g,
+                                sourceColors[y_index][Math.min(Math.max(x1, 0), SOURCE_GRID_SIZE - 1)].g,
+                                sourceColors[y_index][Math.min(Math.max(x1 + 1, 0), SOURCE_GRID_SIZE - 1)].g,
+                                sourceColors[y_index][Math.min(Math.max(x1 + 2, 0), SOURCE_GRID_SIZE - 1)].g
+                            ];
+                            const p_b = [
+                                sourceColors[y_index][Math.min(Math.max(x1 - 1, 0), SOURCE_GRID_SIZE - 1)].b,
+                                sourceColors[y_index][Math.min(Math.max(x1, 0), SOURCE_GRID_SIZE - 1)].b,
+                                sourceColors[y_index][Math.min(Math.max(x1 + 1, 0), SOURCE_GRID_SIZE - 1)].b,
+                                sourceColors[y_index][Math.min(Math.max(x1 + 2, 0), SOURCE_GRID_SIZE - 1)].b
+                            ];
+                            
+                            r_arr.push(cubicInterpolation(p_r, x_diff));
+                            g_arr.push(cubicInterpolation(p_g, x_diff));
+                            b_arr.push(cubicInterpolation(p_b, x_diff));
+                        }
+
+                        const r = cubicInterpolation(r_arr, y_diff);
+                        const g = cubicInterpolation(g_arr, y_diff);
+                        const b = cubicInterpolation(b_arr, y_diff);
+
+                        destCtx.fillStyle = rgbToHex(r, g, b);
+                        destCtx.fillRect(x * destPixelSize, y * destPixelSize, destPixelSize, destPixelSize);
+                    }
+                }
+            }
+
+            function handleDraw(event) {
+                if (!isDrawing) return;
+                const rect = sourceCanvas.getBoundingClientRect();
+                const mouseX = event.clientX - rect.left;
+                const mouseY = event.clientY - rect.top;
+                const gridX = Math.floor(mouseX / sourcePixelSize);
+                const gridY = Math.floor(mouseY / sourcePixelSize);
+                if (gridX >= 0 && gridX < SOURCE_GRID_SIZE && gridY >= 0 && gridY < SOURCE_GRID_SIZE) {
+                    if (sourceGrid[gridY][gridX] !== currentColor) {
+                        sourceGrid[gridY][gridX] = currentColor;
+                        redrawAll();
+                    }
+                }
+            }
+            
+            function updateHighlight(event) {
+                const destGridDim = SOURCE_GRID_SIZE * scaleFactor;
+                const destPixelSize = destCanvas.width / destGridDim;
+                const rect = destCanvas.getBoundingClientRect();
+                const mouseX = event.clientX - rect.left;
+                const mouseY = event.clientY - rect.top;
+                const destX = Math.floor(mouseX / destPixelSize);
+                const destY = Math.floor(mouseY / destPixelSize);
+
+                if (destX < 0 || destX >= destGridDim || destY < 0 || destY >= destGridDim) {
+                    highlightedSourcePixels = null;
+                    return;
+                }
+
+                const srcX = destX / scaleFactor;
+                const srcY = destY / scaleFactor;
+                const x_start = Math.floor(srcX) - 1;
+                const y_start = Math.floor(srcY) - 1;
+                highlightedSourcePixels = { x_start, y_start };
+            }
+
+
+            colorPicker.addEventListener('input', (e) => {
+                currentColor = e.target.value;
+            });
+
+            scaleSlider.addEventListener('input', (e) => {
+                scaleFactor = parseInt(e.target.value, 10);
+                scaleValueSpan.textContent = `${scaleFactor}x`;
+                redrawAll();
+            });
+            
+            clearButton.addEventListener('click', () => {
+                 sourceGrid = Array(SOURCE_GRID_SIZE).fill().map(() => Array(SOURCE_GRID_SIZE).fill(DEFAULT_COLOR));
+                 redrawAll();
+            });
+            
+            sourceCanvas.addEventListener('mousedown', (e) => {
+                isDrawing = true;
+                handleDraw(e);
+            });
+            sourceCanvas.addEventListener('mouseup', () => { isDrawing = false; });
+            sourceCanvas.addEventListener('mouseleave', () => { isDrawing = false; });
+            sourceCanvas.addEventListener('mousemove', handleDraw);
+
+            destCanvas.addEventListener('mousemove', (e) => {
+                updateLiveCalculation(e);
+            });
+            destCanvas.addEventListener('mouseleave', () => {
+                clearLiveCalculation();
+            });
+
+            function redrawAll() {
+                const destGridDim = SOURCE_GRID_SIZE * scaleFactor;
+                document.getElementById('destGridSizeLabel').textContent = `(${destGridDim}x${destGridDim})`;
+                drawSourceGrid();
+                bicubicInterpolation();
+            }
+
+            redrawAll();
+        });
+    </script>
+</body>
+</html>
