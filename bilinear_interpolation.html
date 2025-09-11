@@ -46,9 +46,11 @@
                     </div>
                     <div class="mt-3 pt-3 border-t border-slate-700/50 text-xs text-slate-400 space-y-1">
                         <p><span class="font-semibold text-lime-300">lerp(a, b, t)</span> = a * (1 - t) + b * t</p>
-                        <p><span class="font-semibold text-yellow-300">x_diff</span> is the horizontal distance within the source grid.</p>
-                        <p><span class="font-semibold text-yellow-300">y_diff</span> is the vertical distance within the source grid.</p>
+                        <p><span class="font-semibold text-yellow-300">x_diff</span> = (dest_x / scale) - floor(dest_x / scale)</p>
+                        <p><span class="font-semibold text-yellow-300">y_diff</span> = (dest_y / scale) - floor(dest_y / scale)</p>
                         <p><span class="font-semibold text-pink-400">Q<sub>11</sub>, Q<sub>12</sub>, Q<sub>21</sub>, Q<sub>22</sub></span> are the four nearest source pixels.</p>
+                        <p><span class="font-semibold text-orange-400">R<sub>1</sub> & R<sub>2</sub></span> are the intermediate interpolated points on the x-axis.</p>
+                        <p><span class="font-semibold text-cyan-300">P<sub>out</sub></span> is the final interpolated pixel color.</p>
                     </div>
                 </div>
                 <div id="live-formula-container" class="mt-4 p-4 bg-slate-900/70 rounded-lg border border-slate-700">
@@ -56,31 +58,49 @@
                     <p class="text-center text-sm text-slate-400 mb-2">This shows the calculation for the pixel you hover over.</p>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm font-mono text-white tracking-wider text-center">
                         <!-- Red Channel -->
-                        <div>
+                        <div class="space-y-1">
                             <h4 class="font-semibold text-red-400 mb-2 border-b border-red-900 pb-1">Red</h4>
-                            <p>R1 = <span id="r-r1-val" class="text-orange-400 font-semibold">?</span></p>
-                            <p>R2 = <span id="r-r2-val" class="text-orange-400 font-semibold">?</span></p>
-                            <p class="font-bold mt-1">P = <span id="r-p-val" class="text-cyan-300 font-bold">?</span></p>
+                            <div class="grid grid-cols-2 gap-x-2 text-pink-400 mb-2 text-xs">
+                                <p>Q11: <span id="r-q11-val" class="font-semibold">?</span></p>
+                                <p>Q21: <span id="r-q21-val" class="font-semibold">?</span></p>
+                                <p>Q12: <span id="r-q12-val" class="font-semibold">?</span></p>
+                                <p>Q22: <span id="r-q22-val" class="font-semibold">?</span></p>
+                            </div>
+                            <p>R1 = lerp(Q11, Q21, <span class="text-yellow-300 font-mono x-diff-val-ch">?</span>) = <span id="r-r1-val" class="text-orange-400 font-semibold">?</span></p>
+                            <p>R2 = lerp(Q12, Q22, <span class="text-yellow-300 font-mono x-diff-val-ch">?</span>) = <span id="r-r2-val" class="text-orange-400 font-semibold">?</span></p>
+                            <p class="pt-1 mt-1 border-t border-slate-700">P = lerp(R1, R2, <span class="text-yellow-300 font-mono y-diff-val-ch">?</span>) = <span id="r-p-val" class="text-cyan-300 font-bold">?</span></p>
                         </div>
                         <!-- Green Channel -->
-                        <div>
+                        <div class="space-y-1">
                             <h4 class="font-semibold text-green-400 mb-2 border-b border-green-900 pb-1">Green</h4>
-                            <p>R1 = <span id="g-r1-val" class="text-orange-400 font-semibold">?</span></p>
-                            <p>R2 = <span id="g-r2-val" class="text-orange-400 font-semibold">?</span></p>
-                            <p class="font-bold mt-1">P = <span id="g-p-val" class="text-cyan-300 font-bold">?</span></p>
+                            <div class="grid grid-cols-2 gap-x-2 text-pink-400 mb-2 text-xs">
+                                <p>Q11: <span id="g-q11-val" class="font-semibold">?</span></p>
+                                <p>Q21: <span id="g-q21-val" class="font-semibold">?</span></p>
+                                <p>Q12: <span id="g-q12-val" class="font-semibold">?</span></p>
+                                <p>Q22: <span id="g-q22-val" class="font-semibold">?</span></p>
+                            </div>
+                            <p>R1 = lerp(Q11, Q21, <span class="text-yellow-300 font-mono x-diff-val-ch">?</span>) = <span id="g-r1-val" class="text-orange-400 font-semibold">?</span></p>
+                            <p>R2 = lerp(Q12, Q22, <span class="text-yellow-300 font-mono x-diff-val-ch">?</span>) = <span id="g-r2-val" class="text-orange-400 font-semibold">?</span></p>
+                            <p class="pt-1 mt-1 border-t border-slate-700">P = lerp(R1, R2, <span class="text-yellow-300 font-mono y-diff-val-ch">?</span>) = <span id="g-p-val" class="text-cyan-300 font-bold">?</span></p>
                         </div>
                         <!-- Blue Channel -->
-                        <div>
+                        <div class="space-y-1">
                             <h4 class="font-semibold text-blue-400 mb-2 border-b border-blue-900 pb-1">Blue</h4>
-                            <p>R1 = <span id="b-r1-val" class="text-orange-400 font-semibold">?</span></p>
-                            <p>R2 = <span id="b-r2-val" class="text-orange-400 font-semibold">?</span></p>
-                            <p class="font-bold mt-1">P = <span id="b-p-val" class="text-cyan-300 font-bold">?</span></p>
+                            <div class="grid grid-cols-2 gap-x-2 text-pink-400 mb-2 text-xs">
+                                <p>Q11: <span id="b-q11-val" class="font-semibold">?</span></p>
+                                <p>Q21: <span id="b-q21-val" class="font-semibold">?</span></p>
+                                <p>Q12: <span id="b-q12-val" class="font-semibold">?</span></p>
+                                <p>Q22: <span id="b-q22-val" class="font-semibold">?</span></p>
+                            </div>
+                            <p>R1 = lerp(Q11, Q21, <span class="text-yellow-300 font-mono x-diff-val-ch">?</span>) = <span id="b-r1-val" class="text-orange-400 font-semibold">?</span></p>
+                            <p>R2 = lerp(Q12, Q22, <span class="text-yellow-300 font-mono x-diff-val-ch">?</span>) = <span id="b-r2-val" class="text-orange-400 font-semibold">?</span></p>
+                            <p class="pt-1 mt-1 border-t border-slate-700">P = lerp(R1, R2, <span class="text-yellow-300 font-mono y-diff-val-ch">?</span>) = <span id="b-p-val" class="text-cyan-300 font-bold">?</span></p>
                         </div>
                     </div>
-                     <div class="mt-4 pt-3 border-t border-slate-700/50 text-xs text-slate-400 space-y-1 text-center">
-                        <p>R1 = lerp(Q11, Q21, <span id="x-diff-val" class="text-yellow-300 font-mono">?</span>)</p>
-                        <p>R2 = lerp(Q12, Q22, <span id="x-diff-val2" class="text-yellow-300 font-mono">?</span>)</p>
-                        <p>P = lerp(R1, R2, <span id="y-diff-val" class="text-yellow-300 font-mono">?</span>)</p>
+                    <div class="mt-4 pt-3 border-t border-slate-700/50 text-xs text-slate-400 space-y-2 text-center font-mono">
+                        <p><span class="text-yellow-300">x_diff</span> = (<span id="xdiff-dest-x" class="text-white">?</span> / <span id="xdiff-scale" class="text-white">?</span>) - floor(<span id="xdiff-dest-x2" class="text-white">?</span> / <span id="xdiff-scale2" class="text-white">?</span>) = <span id="xdiff-result" class="text-white font-bold">?</span></p>
+                        <p><span class="text-yellow-300">y_diff</span> = (<span id="ydiff-dest-y" class="text-white">?</span> / <span id="ydiff-scale" class="text-white">?</span>) - floor(<span id="ydiff-dest-y2" class="text-white">?</span> / <span id="ydiff-scale2" class="text-white">?</span>) = <span id="ydiff-result" class="text-white font-bold">?</span></p>
+                        <p class="pt-2 mt-2 border-t border-slate-800">Values for Q11, Q12, Q21, Q22 depend on the color channel.</p>
                     </div>
                 </div>
                 <p class="mt-4 text-slate-300 leading-relaxed font-medium">
@@ -93,8 +113,10 @@
                 <!-- Source Canvas (Left Side) -->
                 <div class="flex flex-col items-center">
                     <h3 class="text-xl font-semibold mb-3 text-yellow-400">1. Source Grid (2x2)</h3>
-                    <div class="flex flex-col items-center">
-                        <div class="bg-slate-700 p-2 rounded-lg shadow-inner">
+                    <div class="relative w-[280px] h-[280px]">
+                        <div id="source-y-axis" class="absolute top-10 left-0 w-10 h-[240px] text-xs text-slate-400"></div>
+                        <div id="source-x-axis" class="absolute top-0 left-10 w-[240px] h-10 text-xs text-slate-400"></div>
+                        <div class="absolute top-10 left-10 bg-slate-700 p-2 rounded-lg shadow-inner">
                              <canvas id="sourceCanvas" width="240" height="240" class="rounded-md"></canvas>
                         </div>
                     </div>
@@ -104,8 +126,10 @@
                 <div class="flex flex-col items-center">
                     <h3 class="text-xl font-semibold mb-3 text-green-400">2. Upscaled Output <span id="destGridSizeLabel"></span></h3>
                     <div class="flex items-start gap-4">
-                        <div class="flex flex-col items-center">
-                            <div class="bg-slate-700 p-2 rounded-lg shadow-inner">
+                        <div class="relative w-[280px] h-[280px]">
+                            <div id="dest-y-axis" class="absolute top-10 left-0 w-10 h-[240px] text-xs text-slate-400"></div>
+                            <div id="dest-x-axis" class="absolute top-0 left-10 w-[240px] h-10 text-xs text-slate-400"></div>
+                            <div class="absolute top-10 left-10 bg-slate-700 p-2 rounded-lg shadow-inner">
                                 <canvas id="destCanvas" width="240" height="240" class="rounded-md"></canvas>
                             </div>
                         </div>
@@ -165,11 +189,14 @@
             const destCoordsDisplay = document.getElementById('dest-coords-display');
             const sourceCoordsDisplay = document.getElementById('source-coords-display');
             const liveFormulaContainer = document.getElementById('live-formula-container');
+            const sourceXAxis = document.getElementById('source-x-axis');
+            const sourceYAxis = document.getElementById('source-y-axis');
+            const destXAxis = document.getElementById('dest-x-axis');
+            const destYAxis = document.getElementById('dest-y-axis');
 
             // Live formula elements
-            const x_diff_val = document.getElementById('x-diff-val');
-            const x_diff_val2 = document.getElementById('x-diff-val2');
-            const y_diff_val = document.getElementById('y-diff-val');
+            const x_diff_val_chs = document.querySelectorAll('.x-diff-val-ch');
+            const y_diff_val_chs = document.querySelectorAll('.y-diff-val-ch');
 
             const r_r1_val = document.getElementById('r-r1-val');
             const r_r2_val = document.getElementById('r-r2-val');
@@ -181,6 +208,30 @@
             const b_r2_val = document.getElementById('b-r2-val');
             const b_p_val = document.getElementById('b-p-val');
 
+            const r_q11_val = document.getElementById('r-q11-val');
+            const r_q12_val = document.getElementById('r-q12-val');
+            const r_q21_val = document.getElementById('r-q21-val');
+            const r_q22_val = document.getElementById('r-q22-val');
+            const g_q11_val = document.getElementById('g-q11-val');
+            const g_q12_val = document.getElementById('g-q12-val');
+            const g_q21_val = document.getElementById('g-q21-val');
+            const g_q22_val = document.getElementById('g-q22-val');
+            const b_q11_val = document.getElementById('b-q11-val');
+            const b_q12_val = document.getElementById('b-q12-val');
+            const b_q21_val = document.getElementById('b-q21-val');
+            const b_q22_val = document.getElementById('b-q22-val');
+
+            const xdiff_dest_x = document.getElementById('xdiff-dest-x');
+            const xdiff_scale = document.getElementById('xdiff-scale');
+            const xdiff_dest_x2 = document.getElementById('xdiff-dest-x2');
+            const xdiff_scale2 = document.getElementById('xdiff-scale2');
+            const xdiff_result = document.getElementById('xdiff-result');
+            const ydiff_dest_y = document.getElementById('ydiff-dest-y');
+            const ydiff_scale = document.getElementById('ydiff-scale');
+            const ydiff_dest_y2 = document.getElementById('ydiff-dest-y2');
+            const ydiff_scale2 = document.getElementById('ydiff-scale2');
+            const ydiff_result = document.getElementById('ydiff-result');
+
 
             const SOURCE_GRID_SIZE = 2;
             const sourcePixelSize = sourceCanvas.width / SOURCE_GRID_SIZE;
@@ -191,6 +242,7 @@
 
             let isDrawing = false;
             let currentColor = colorPicker.value;
+            let highlightedSourcePixels = null;
 
             function drawSourceGrid() {
                 sourceCtx.clearRect(0, 0, sourceCanvas.width, sourceCanvas.height);
@@ -200,8 +252,19 @@
                         sourceCtx.fillRect(x * sourcePixelSize, y * sourcePixelSize, sourcePixelSize, sourcePixelSize);
                     }
                 }
-                sourceCtx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
-                sourceCtx.lineWidth = 1;
+
+                if (highlightedSourcePixels) {
+                    const { x1, y1, x2, y2 } = highlightedSourcePixels;
+                    sourceCtx.strokeStyle = '#FBBF24'; // amber-400
+                    sourceCtx.lineWidth = 4;
+                    sourceCtx.strokeRect(x1 * sourcePixelSize, y1 * sourcePixelSize, sourcePixelSize, sourcePixelSize); // Q11
+                    sourceCtx.strokeRect(x2 * sourcePixelSize, y1 * sourcePixelSize, sourcePixelSize, sourcePixelSize); // Q21
+                    sourceCtx.strokeRect(x1 * sourcePixelSize, y2 * sourcePixelSize, sourcePixelSize, sourcePixelSize); // Q12
+                    sourceCtx.strokeRect(x2 * sourcePixelSize, y2 * sourcePixelSize, sourcePixelSize, sourcePixelSize); // Q22
+                }
+
+                sourceCtx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                sourceCtx.lineWidth = 2;
                 for (let i = 0; i <= SOURCE_GRID_SIZE; i++) {
                     sourceCtx.beginPath();
                     sourceCtx.moveTo(i * sourcePixelSize, 0);
@@ -234,6 +297,67 @@
 
             function lerp(start, end, t) {
                 return start * (1 - t) + end * t;
+            }
+
+            function drawAxes() {
+                // Clear previous axes
+                sourceXAxis.innerHTML = '';
+                sourceYAxis.innerHTML = '';
+                destXAxis.innerHTML = '';
+                destYAxis.innerHTML = '';
+
+                const sourcePixelSize = sourceCanvas.width / SOURCE_GRID_SIZE;
+
+                // Source X-Axis (labels at grid lines)
+                for (let i = 0; i <= SOURCE_GRID_SIZE; i++) {
+                    const label = document.createElement('div');
+                    label.textContent = i;
+                    label.className = 'absolute text-center';
+                    const pos = i * sourcePixelSize;
+                    label.style.left = `${pos}px`;
+                    label.style.transform = 'translateX(-50%)';
+                    sourceXAxis.appendChild(label);
+                }
+
+                // Source Y-Axis (labels at grid lines)
+                for (let i = 0; i <= SOURCE_GRID_SIZE; i++) {
+                    const label = document.createElement('div');
+                    label.textContent = i;
+                    label.className = 'absolute text-center w-full';
+                    const pos = i * sourcePixelSize;
+                    label.style.top = `${pos}px`;
+                    label.style.transform = 'translateY(-50%)';
+                    sourceYAxis.appendChild(label);
+                }
+
+                const destGridDim = SOURCE_GRID_SIZE * scaleFactor;
+                const destPixelSize = destCanvas.width / destGridDim;
+                
+                // Destination X-Axis - Display all labels
+                for (let i = 0; i <= destGridDim; i++) {
+                    const label = document.createElement('div');
+                    label.textContent = i;
+                    label.className = 'absolute text-center';
+                    let pos = i * destPixelSize;
+                    // Clamp last label to the edge
+                    if (i === destGridDim) pos = destCanvas.width;
+                    label.style.left = `${pos}px`;
+                    label.style.transform = 'translateX(-50%)';
+                    destXAxis.appendChild(label);
+                }
+
+                // Destination Y-Axis - Display all labels
+                for (let i = 0; i <= destGridDim; i++) {
+                    const label = document.createElement('div');
+                    label.textContent = i;
+                    label.className = 'absolute text-center w-full';
+                    let pos = i * destPixelSize;
+                    // Clamp last label to the edge
+                    if (i === destGridDim) pos = destCanvas.height;
+                    label.style.top = `${pos}px`;
+                    label.style.transform = 'translateY(-50%)';
+                    destYAxis.appendChild(label);
+                }
             }
 
             function bilinearInterpolation() {
@@ -278,6 +402,23 @@
                         destCtx.fillRect(x * destPixelSize, y * destPixelSize, destPixelSize, destPixelSize);
                     }
                 }
+
+                // Draw grid lines on destination canvas
+                destCtx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+                destCtx.lineWidth = 1;
+                for (let i = 0; i <= destGridDim; i++) {
+                    // Vertical lines
+                    destCtx.beginPath();
+                    destCtx.moveTo(i * destPixelSize, 0);
+                    destCtx.lineTo(i * destPixelSize, canvasSize);
+                    destCtx.stroke();
+                    
+                    // Horizontal lines
+                    destCtx.beginPath();
+                    destCtx.moveTo(0, i * destPixelSize);
+                    destCtx.lineTo(canvasSize, i * destPixelSize);
+                    destCtx.stroke();
+                }
             }
 
             function handleDraw(event) {
@@ -309,11 +450,13 @@
 
                     // Ensure coordinates are within bounds
                     if (destX < 0 || destX >= destGridDim || destY < 0 || destY >= destGridDim) {
+                        highlightedSourcePixels = null;
                         updateLiveFormula(); // Call without event to reset to default
                         return;
                     }
                 } else {
                     // Use a fixed, representative destination pixel for the static/default example
+                    highlightedSourcePixels = null;
                     destX = Math.floor(destGridDim / 2);
                     destY = Math.floor(destGridDim / 2);
                 }
@@ -325,6 +468,10 @@
                 const y1 = Math.floor(srcY);
                 const x2 = Math.min(x1 + 1, SOURCE_GRID_SIZE - 1);
                 const y2 = Math.min(y1 + 1, SOURCE_GRID_SIZE - 1);
+
+                if (event) {
+                    highlightedSourcePixels = { x1, y1, x2, y2 };
+                }
 
                 const q11 = hexToRgb(sourceGrid[y1][x1]);
                 const q21 = hexToRgb(sourceGrid[y1][x2]);
@@ -353,21 +500,45 @@
                 destCoordsDisplay.textContent = `(${destX}, ${destY})`;
                 sourceCoordsDisplay.textContent = `(${srcX.toFixed(2)}, ${srcY.toFixed(2)})`;
                 
-                x_diff_val.textContent = x_diff.toFixed(2);
-                x_diff_val2.textContent = x_diff.toFixed(2);
-                y_diff_val.textContent = y_diff.toFixed(2);
+                x_diff_val_chs.forEach(el => el.textContent = x_diff.toFixed(2));
+                y_diff_val_chs.forEach(el => el.textContent = y_diff.toFixed(2));
 
+                r_q11_val.textContent = q11.r;
+                r_q12_val.textContent = q12.r;
+                r_q21_val.textContent = q21.r;
+                r_q22_val.textContent = q22.r;
                 r_r1_val.textContent = Math.round(r_r1);
                 r_r2_val.textContent = Math.round(r_r2);
                 r_p_val.textContent = Math.round(r_p);
 
+                g_q11_val.textContent = q11.g;
+                g_q12_val.textContent = q12.g;
+                g_q21_val.textContent = q21.g;
+                g_q22_val.textContent = q22.g;
                 g_r1_val.textContent = Math.round(g_r1);
                 g_r2_val.textContent = Math.round(g_r2);
                 g_p_val.textContent = Math.round(g_p);
 
+                b_q11_val.textContent = q11.b;
+                b_q12_val.textContent = q12.b;
+                b_q21_val.textContent = q21.b;
+                b_q22_val.textContent = q22.b;
                 b_r1_val.textContent = Math.round(b_r1);
                 b_r2_val.textContent = Math.round(b_r2);
                 b_p_val.textContent = Math.round(b_p);
+
+                // Update diff calculations
+                xdiff_dest_x.textContent = destX;
+                xdiff_scale.textContent = scaleFactor;
+                xdiff_dest_x2.textContent = destX;
+                xdiff_scale2.textContent = scaleFactor;
+                xdiff_result.textContent = x_diff.toFixed(2);
+
+                ydiff_dest_y.textContent = destY;
+                ydiff_scale.textContent = scaleFactor;
+                ydiff_dest_y2.textContent = destY;
+                ydiff_scale2.textContent = scaleFactor;
+                ydiff_result.textContent = y_diff.toFixed(2);
             }
 
 
@@ -395,12 +566,20 @@
             sourceCanvas.addEventListener('mouseleave', () => { isDrawing = false; });
             sourceCanvas.addEventListener('mousemove', handleDraw);
 
-            destCanvas.addEventListener('mousemove', updateLiveFormula);
-            destCanvas.addEventListener('mouseleave', () => updateLiveFormula());
+            destCanvas.addEventListener('mousemove', (e) => {
+                updateLiveFormula(e);
+                drawSourceGrid();
+            });
+            destCanvas.addEventListener('mouseleave', () => {
+                highlightedSourcePixels = null;
+                updateLiveFormula();
+                drawSourceGrid();
+            });
 
             function redrawAll() {
                 const destGridDim = SOURCE_GRID_SIZE * scaleFactor;
                 document.getElementById('destGridSizeLabel').textContent = `(${destGridDim}x${destGridDim})`;
+                drawAxes();
                 drawSourceGrid();
                 bilinearInterpolation();
                 updateLiveFormula(); // Update the static formula display
