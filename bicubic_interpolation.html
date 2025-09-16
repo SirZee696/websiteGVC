@@ -55,21 +55,51 @@
                 <div id="live-formula-container" class="mt-4 p-4 bg-slate-900/70 rounded-lg border border-slate-700">
                     <h3 class="text-lg font-medium text-slate-300 mb-3 text-center">Live Calculation</h3>
                     <p class="text-center text-sm text-slate-400 mb-2">This shows the calculation for the pixel you hover over.</p>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm font-mono text-white tracking-wider text-center">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-mono text-white tracking-wider text-center">
                         <!-- Red Channel -->
-                        <div>
+                        <div class="space-y-1">
                             <h4 class="font-semibold text-red-400 mb-2 border-b border-red-900 pb-1">Red</h4>
-                            <p class="font-bold mt-1">P_out = <span id="r-p-val" class="text-cyan-300 font-bold">?</span></p>
+                            <div class="grid grid-cols-4 gap-x-2 mb-2 text-center text-slate-400">
+                                <span id="r-p00-val">?</span> <span id="r-p10-val">?</span> <span id="r-p20-val">?</span> <span id="r-p30-val">?</span>
+                                <span id="r-p01-val">?</span> <span id="r-p11-val">?</span> <span id="r-p21-val">?</span> <span id="r-p31-val">?</span>
+                                <span id="r-p02-val">?</span> <span id="r-p12-val">?</span> <span id="r-p22-val">?</span> <span id="r-p32-val">?</span>
+                                <span id="r-p03-val">?</span> <span id="r-p13-val">?</span> <span id="r-p23-val">?</span> <span id="r-p33-val">?</span>
+                            </div>
+                            <p>Row1 = Cubic(<span class="text-slate-400" id="r-row1-p-vals">...</span>, <span class="text-yellow-300 x-diff-val-ch">?</span>) = <span id="r-row1-val" class="text-orange-400 font-semibold">?</span></p>
+                            <p>Row2 = Cubic(<span class="text-slate-400" id="r-row2-p-vals">...</span>, <span class="text-yellow-300 x-diff-val-ch">?</span>) = <span id="r-row2-val" class="text-orange-400 font-semibold">?</span></p>
+                            <p>Row3 = Cubic(<span class="text-slate-400" id="r-row3-p-vals">...</span>, <span class="text-yellow-300 x-diff-val-ch">?</span>) = <span id="r-row3-val" class="text-orange-400 font-semibold">?</span></p>
+                            <p>Row4 = Cubic(<span class="text-slate-400" id="r-row4-p-vals">...</span>, <span class="text-yellow-300 x-diff-val-ch">?</span>) = <span id="r-row4-val" class="text-orange-400 font-semibold">?</span></p>
+                            <p class="pt-1 mt-1 border-t border-slate-700">Pout = Cubic(Rows, <span class="text-yellow-300 y-diff-val-ch">?</span>) = <span id="r-p-val" class="text-cyan-300 font-bold">?</span></p>
                         </div>
                         <!-- Green Channel -->
-                        <div>
+                        <div class="space-y-1">
                             <h4 class="font-semibold text-green-400 mb-2 border-b border-green-900 pb-1">Green</h4>
-                            <p class="font-bold mt-1">P_out = <span id="g-p-val" class="text-cyan-300 font-bold">?</span></p>
+                            <div class="grid grid-cols-4 gap-x-2 mb-2 text-center text-slate-400">
+                                <span id="g-p00-val">?</span> <span id="g-p10-val">?</span> <span id="g-p20-val">?</span> <span id="g-p30-val">?</span>
+                                <span id="g-p01-val">?</span> <span id="g-p11-val">?</span> <span id="g-p21-val">?</span> <span id="g-p31-val">?</span>
+                                <span id="g-p02-val">?</span> <span id="g-p12-val">?</span> <span id="g-p22-val">?</span> <span id="g-p32-val">?</span>
+                                <span id="g-p03-val">?</span> <span id="g-p13-val">?</span> <span id="g-p23-val">?</span> <span id="g-p33-val">?</span>
+                            </div>
+                            <p>Row1 = Cubic(<span class="text-slate-400" id="g-row1-p-vals">...</span>, <span class="text-yellow-300 x-diff-val-ch">?</span>) = <span id="g-row1-val" class="text-orange-400 font-semibold">?</span></p>
+                            <p>Row2 = Cubic(<span class="text-slate-400" id="g-row2-p-vals">...</span>, <span class="text-yellow-300 x-diff-val-ch">?</span>) = <span id="g-row2-val" class="text-orange-400 font-semibold">?</span></p>
+                            <p>Row3 = Cubic(<span class="text-slate-400" id="g-row3-p-vals">...</span>, <span class="text-yellow-300 x-diff-val-ch">?</span>) = <span id="g-row3-val" class="text-orange-400 font-semibold">?</span></p>
+                            <p>Row4 = Cubic(<span class="text-slate-400" id="g-row4-p-vals">...</span>, <span class="text-yellow-300 x-diff-val-ch">?</span>) = <span id="g-row4-val" class="text-orange-400 font-semibold">?</span></p>
+                            <p class="pt-1 mt-1 border-t border-slate-700">Pout = Cubic(Rows, <span class="text-yellow-300 y-diff-val-ch">?</span>) = <span id="g-p-val" class="text-cyan-300 font-bold">?</span></p>
                         </div>
                         <!-- Blue Channel -->
-                        <div>
+                        <div class="space-y-1">
                             <h4 class="font-semibold text-blue-400 mb-2 border-b border-blue-900 pb-1">Blue</h4>
-                            <p class="font-bold mt-1">P_out = <span id="b-p-val" class="text-cyan-300 font-bold">?</span></p>
+                            <div class="grid grid-cols-4 gap-x-2 mb-2 text-center text-slate-400">
+                                <span id="b-p00-val">?</span> <span id="b-p10-val">?</span> <span id="b-p20-val">?</span> <span id="b-p30-val">?</span>
+                                <span id="b-p01-val">?</span> <span id="b-p11-val">?</span> <span id="b-p21-val">?</span> <span id="b-p31-val">?</span>
+                                <span id="b-p02-val">?</span> <span id="b-p12-val">?</span> <span id="b-p22-val">?</span> <span id="b-p32-val">?</span>
+                                <span id="b-p03-val">?</span> <span id="b-p13-val">?</span> <span id="b-p23-val">?</span> <span id="b-p33-val">?</span>
+                            </div>
+                            <p>Row1 = Cubic(<span class="text-slate-400" id="b-row1-p-vals">...</span>, <span class="text-yellow-300 x-diff-val-ch">?</span>) = <span id="b-row1-val" class="text-orange-400 font-semibold">?</span></p>
+                            <p>Row2 = Cubic(<span class="text-slate-400" id="b-row2-p-vals">...</span>, <span class="text-yellow-300 x-diff-val-ch">?</span>) = <span id="b-row2-val" class="text-orange-400 font-semibold">?</span></p>
+                            <p>Row3 = Cubic(<span class="text-slate-400" id="b-row3-p-vals">...</span>, <span class="text-yellow-300 x-diff-val-ch">?</span>) = <span id="b-row3-val" class="text-orange-400 font-semibold">?</span></p>
+                            <p>Row4 = Cubic(<span class="text-slate-400" id="b-row4-p-vals">...</span>, <span class="text-yellow-300 x-diff-val-ch">?</span>) = <span id="b-row4-val" class="text-orange-400 font-semibold">?</span></p>
+                            <p class="pt-1 mt-1 border-t border-slate-700">Pout = Cubic(Rows, <span class="text-yellow-300 y-diff-val-ch">?</span>) = <span id="b-p-val" class="text-cyan-300 font-bold">?</span></p>
                         </div>
                     </div>
                      <div class="mt-4 pt-3 border-t border-slate-700/50 text-xs text-slate-400 space-y-1 text-center">
@@ -88,6 +118,8 @@
                 <div class="flex flex-col items-center">
                     <h3 class="text-xl font-semibold mb-3 text-yellow-400">1. Source Grid (4x4)</h3>
                     <div class="relative w-[280px] h-[280px]">
+                        <div id="source-y-axis" class="absolute top-10 left-0 w-10 h-[240px] text-xs text-slate-400"></div>
+                        <div id="source-x-axis" class="absolute top-0 left-10 w-[240px] h-10 text-xs text-slate-400"></div>
                         <div class="absolute top-10 left-10 bg-slate-700 p-2 rounded-lg shadow-inner">
                              <canvas id="sourceCanvas" width="240" height="240" class="rounded-md"></canvas>
                         </div>
@@ -98,6 +130,8 @@
                 <div class="flex flex-col items-center">
                     <h3 class="text-xl font-semibold mb-3 text-green-400">2. Upscaled Output <span id="destGridSizeLabel"></span></h3>
                      <div class="relative w-[280px] h-[280px]">
+                        <div id="dest-y-axis" class="absolute top-10 left-0 w-10 h-[240px] text-xs text-slate-400"></div>
+                        <div id="dest-x-axis" class="absolute top-0 left-10 w-[240px] h-10 text-xs text-slate-400"></div>
                         <div class="absolute top-10 left-10 bg-slate-700 p-2 rounded-lg shadow-inner">
                             <canvas id="destCanvas" width="240" height="240" class="rounded-md"></canvas>
                         </div>
@@ -149,6 +183,12 @@
             const bPVal = document.getElementById('b-p-val');
             const xDiffVal = document.getElementById('x-diff-val');
             const yDiffVal = document.getElementById('y-diff-val');
+            const xDiffValCh = document.querySelectorAll('.x-diff-val-ch');
+            const yDiffValCh = document.querySelectorAll('.y-diff-val-ch');
+            const sourceXAxis = document.getElementById('source-x-axis');
+            const sourceYAxis = document.getElementById('source-y-axis');
+            const destXAxis = document.getElementById('dest-x-axis');
+            const destYAxis = document.getElementById('dest-y-axis');
             
             const SOURCE_GRID_SIZE = 4;
             const sourcePixelSize = sourceCanvas.width / SOURCE_GRID_SIZE;
@@ -161,6 +201,10 @@
             let currentColor = colorPicker.value;
             let highlightedSourcePixels = null;
 
+            function clamp(value, min, max) {
+                return Math.min(Math.max(value, min), max);
+            }
+
             function getPixelColor(x, y, colors) {
                 x = Math.min(Math.max(x, 0), SOURCE_GRID_SIZE - 1);
                 y = Math.min(Math.max(y, 0), SOURCE_GRID_SIZE - 1);
@@ -169,73 +213,97 @@
 
             function updateLiveCalculation(event) {
                 const rect = destCanvas.getBoundingClientRect();
-                const destX = event.clientX - rect.left;
-                const destY = event.clientY - rect.top;
+                const canvasX = event.clientX - rect.left;
+                const canvasY = event.clientY - rect.top;
 
-                const scale = scaleSlider.value;
-                const srcX = destX / scale;
-                const srcY = destY / scale;
-
-                const x_int = Math.floor(srcX);
-                const y_int = Math.floor(srcY);
+                const destGridDim = SOURCE_GRID_SIZE * scaleFactor;
+                const destPixelSize = destCanvas.width / destGridDim;
                 
-                const x_diff = srcX - x_int;
-                const y_diff = srcY - y_int;
+                const destX = Math.floor(canvasX / destPixelSize);
+                const destY = Math.floor(canvasY / destPixelSize);
+
+                if (destX < 0 || destX >= destGridDim || destY < 0 || destY >= destGridDim) {
+                    clearLiveCalculation();
+                    return;
+                }
+
+                const srcX = destX / scaleFactor;
+                const srcY = destY / scaleFactor;
+                const x1 = Math.floor(srcX);
+                const y1 = Math.floor(srcY);
+                const x_diff = srcX - x1;
+                const y_diff = srcY - y1;
 
                 xDiffVal.textContent = x_diff.toFixed(4);
                 yDiffVal.textContent = y_diff.toFixed(4);
+                xDiffValCh.forEach(el => el.textContent = x_diff.toFixed(2));
+                yDiffValCh.forEach(el => el.textContent = y_diff.toFixed(2));
 
-                highlightedSourcePixels = { x_start: x_int - 1, y_start: y_int - 1 };
+                highlightedSourcePixels = { x_start: x1 - 1, y_start: y1 - 1 };
 
                 const sourceColors = sourceGrid.map(row => row.map(hexToRgb));
 
-                let r_arr = [], g_arr = [], b_arr = [];
+                const channels = ['r', 'g', 'b'];
+                channels.forEach((ch, index) => {
+                    const p = new Array(4);
+                    for (let j = 0; j < 4; j++) {
+                        p[j] = new Array(4);
+                        for (let i = 0; i < 4; i++) {
+                            const x = clamp(x1 - 1 + i, 0, SOURCE_GRID_SIZE - 1);
+                            const y = clamp(y1 - 1 + j, 0, SOURCE_GRID_SIZE - 1);
+                            const val = sourceColors[y][x][ch];
+                            p[j][i] = val;
+                            document.getElementById(`${ch}-p${j}${i}-val`).textContent = val;
+                        }
+                    }
 
-                for (let i = 0; i < 4; i++) {
-                    const y_index = y_int - 1 + i;
+                    const row1 = cubicInterpolation(p[0], x_diff);
+                    const row2 = cubicInterpolation(p[1], x_diff);
+                    const row3 = cubicInterpolation(p[2], x_diff);
+                    const row4 = cubicInterpolation(p[3], x_diff);
                     
-                    const p_r = [
-                        getPixelColor(x_int - 1, y_index, sourceColors).r,
-                        getPixelColor(x_int, y_index, sourceColors).r,
-                        getPixelColor(x_int + 1, y_index, sourceColors).r,
-                        getPixelColor(x_int + 2, y_index, sourceColors).r
-                    ];
-                    const p_g = [
-                        getPixelColor(x_int - 1, y_index, sourceColors).g,
-                        getPixelColor(x_int, y_index, sourceColors).g,
-                        getPixelColor(x_int + 1, y_index, sourceColors).g,
-                        getPixelColor(x_int + 2, y_index, sourceColors).g
-                    ];
-                    const p_b = [
-                        getPixelColor(x_int - 1, y_index, sourceColors).b,
-                        getPixelColor(x_int, y_index, sourceColors).b,
-                        getPixelColor(x_int + 1, y_index, sourceColors).b,
-                        getPixelColor(x_int + 2, y_index, sourceColors).b
-                    ];
-                    
-                    r_arr.push(cubicInterpolation(p_r, x_diff));
-                    g_arr.push(cubicInterpolation(p_g, x_diff));
-                    b_arr.push(cubicInterpolation(p_b, x_diff));
-                }
+                    document.getElementById(`${ch}-row1-val`).textContent = row1.toFixed(0);
+                    document.getElementById(`${ch}-row2-val`).textContent = row2.toFixed(0);
+                    document.getElementById(`${ch}-row3-val`).textContent = row3.toFixed(0);
+                    document.getElementById(`${ch}-row4-val`).textContent = row4.toFixed(0);
 
-                const finalR = Math.round(Math.max(0, Math.min(255, cubicInterpolation(r_arr, y_diff))));
-                const finalG = Math.round(Math.max(0, Math.min(255, cubicInterpolation(g_arr, y_diff))));
-                const finalB = Math.round(Math.max(0, Math.min(255, cubicInterpolation(b_arr, y_diff))));
+                    document.getElementById(`${ch}-row1-p-vals`).textContent = p[0].join(', ');
+                    document.getElementById(`${ch}-row2-p-vals`).textContent = p[1].join(', ');
+                    document.getElementById(`${ch}-row3-p-vals`).textContent = p[2].join(', ');
+                    document.getElementById(`${ch}-row4-p-vals`).textContent = p[3].join(', ');
 
-                rPVal.textContent = finalR;
-                gPVal.textContent = finalG;
-                bPVal.textContent = finalB;
+                    const pOut = cubicInterpolation([row1, row2, row3, row4], y_diff);
+                    document.getElementById(`${ch}-p-val`).textContent = Math.round(clamp(pOut, 0, 255));
+                });
                 
                 drawSourceGrid();
             }
 
             function clearLiveCalculation() {
                 highlightedSourcePixels = null;
-                rPVal.textContent = '?';
-                gPVal.textContent = '?';
-                bPVal.textContent = '?';
                 xDiffVal.textContent = '?';
                 yDiffVal.textContent = '?';
+                xDiffValCh.forEach(el => el.textContent = '?');
+                yDiffValCh.forEach(el => el.textContent = '?');
+
+                const channels = ['r', 'g', 'b'];
+                channels.forEach(ch => {
+                    for (let j = 0; j < 4; j++) {
+                        for (let i = 0; i < 4; i++) {
+                            document.getElementById(`${ch}-p${j}${i}-val`).textContent = '?';
+                        }
+                    }
+                    document.getElementById(`${ch}-row1-val`).textContent = '?';
+                    document.getElementById(`${ch}-row2-val`).textContent = '?';
+                    document.getElementById(`${ch}-row3-val`).textContent = '?';
+                    document.getElementById(`${ch}-row4-val`).textContent = '?';
+                    document.getElementById(`${ch}-row1-p-vals`).textContent = '...';
+                    document.getElementById(`${ch}-row2-p-vals`).textContent = '...';
+                    document.getElementById(`${ch}-row3-p-vals`).textContent = '...';
+                    document.getElementById(`${ch}-row4-p-vals`).textContent = '...';
+                    document.getElementById(`${ch}-p-val`).textContent = '?';
+                });
+
                 drawSourceGrid();
             }
 
@@ -352,6 +420,84 @@
                         destCtx.fillRect(x * destPixelSize, y * destPixelSize, destPixelSize, destPixelSize);
                     }
                 }
+
+                // Draw grid lines on destination canvas
+                destCtx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+                destCtx.lineWidth = 1;
+                for (let i = 0; i <= destGridDim; i++) {
+                    // Vertical lines
+                    destCtx.beginPath();
+                    destCtx.moveTo(i * destPixelSize, 0);
+                    destCtx.lineTo(i * destPixelSize, canvasSize);
+                    destCtx.stroke();
+                    
+                    // Horizontal lines
+                    destCtx.beginPath();
+                    destCtx.moveTo(0, i * destPixelSize);
+                    destCtx.lineTo(canvasSize, i * destPixelSize);
+                    destCtx.stroke();
+                }
+            }
+
+            function drawAxes() {
+                // Clear previous axes
+                sourceXAxis.innerHTML = '';
+                sourceYAxis.innerHTML = '';
+                destXAxis.innerHTML = '';
+                destYAxis.innerHTML = '';
+
+                const sourcePixelSize = sourceCanvas.width / SOURCE_GRID_SIZE;
+
+                // Source X-Axis (labels at grid lines)
+                for (let i = 0; i <= SOURCE_GRID_SIZE; i++) {
+                    const label = document.createElement('div');
+                    label.textContent = i;
+                    label.className = 'absolute text-center';
+                    const pos = i * sourcePixelSize;
+                    label.style.left = `${pos}px`;
+                    label.style.transform = 'translateX(-50%)';
+                    sourceXAxis.appendChild(label);
+                }
+
+                // Source Y-Axis (labels at grid lines)
+                for (let i = 0; i <= SOURCE_GRID_SIZE; i++) {
+                    const label = document.createElement('div');
+                    label.textContent = i;
+                    label.className = 'absolute text-center w-full';
+                    const pos = i * sourcePixelSize;
+                    label.style.top = `${pos}px`;
+                    label.style.transform = 'translateY(-50%)';
+                    sourceYAxis.appendChild(label);
+                }
+
+                const destGridDim = SOURCE_GRID_SIZE * scaleFactor;
+                const destPixelSize = destCanvas.width / destGridDim;
+                
+                // Destination X-Axis - Display all labels
+                for (let i = 0; i <= destGridDim; i++) {
+                    const label = document.createElement('div');
+                    label.textContent = i;
+                    label.className = 'absolute text-center';
+                    let pos = i * destPixelSize;
+                    // Clamp last label to the edge
+                    if (i === destGridDim) pos = destCanvas.width;
+                    label.style.left = `${pos}px`;
+                    label.style.transform = 'translateX(-50%)';
+                    destXAxis.appendChild(label);
+                }
+
+                // Destination Y-Axis - Display all labels
+                for (let i = 0; i <= destGridDim; i++) {
+                    const label = document.createElement('div');
+                    label.textContent = i;
+                    label.className = 'absolute text-center w-full';
+                    let pos = i * destPixelSize;
+                    // Clamp last label to the edge
+                    if (i === destGridDim) pos = destCanvas.height;
+                    label.style.top = `${pos}px`;
+                    label.style.transform = 'translateY(-50%)';
+                    destYAxis.appendChild(label);
+                }
             }
 
             function handleDraw(event) {
@@ -424,11 +570,10 @@
             function redrawAll() {
                 const destGridDim = SOURCE_GRID_SIZE * scaleFactor;
                 document.getElementById('destGridSizeLabel').textContent = `(${destGridDim}x${destGridDim})`;
+                drawAxes();
                 drawSourceGrid();
                 bicubicInterpolation();
-            }
-
-            redrawAll();
+            }            redrawAll();
         });
     </script>
 </body>

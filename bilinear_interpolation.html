@@ -373,18 +373,29 @@
                         const srcX = x / scaleFactor;
                         const srcY = y / scaleFactor;
 
-                        const x1 = Math.floor(srcX);
-                        const y1 = Math.floor(srcY);
-                        const x2 = Math.min(x1 + 1, SOURCE_GRID_SIZE - 1);
-                        const y2 = Math.min(y1 + 1, SOURCE_GRID_SIZE - 1);
+                        let x1 = Math.floor(srcX);
+                        let y1 = Math.floor(srcY);
+                        
+                        let x_diff = srcX - x1;
+                        let y_diff = srcY - y1;
+
+                        // Handle boundary conditions for the last pixels
+                        if (x1 >= SOURCE_GRID_SIZE - 1) {
+                            x1 = SOURCE_GRID_SIZE - 2;
+                            x_diff = 1.0;
+                        }
+                        if (y1 >= SOURCE_GRID_SIZE - 1) {
+                            y1 = SOURCE_GRID_SIZE - 2;
+                            y_diff = 1.0;
+                        }
+
+                        const x2 = x1 + 1;
+                        const y2 = y1 + 1;
 
                         const q11 = hexToRgb(sourceGrid[y1][x1]);
                         const q21 = hexToRgb(sourceGrid[y1][x2]);
                         const q12 = hexToRgb(sourceGrid[y2][x1]);
                         const q22 = hexToRgb(sourceGrid[y2][x2]);
-
-                        const x_diff = srcX - x1;
-                        const y_diff = srcY - y1;
 
                         const r1 = lerp(q11.r, q21.r, x_diff);
                         const g1 = lerp(q11.g, q21.g, x_diff);
