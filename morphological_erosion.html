@@ -70,15 +70,15 @@
             </div>
         </section>
 
-        <!-- Interactive Controls + Canvases -->
+        <!-- Controls and Previews -->
         <section class="mb-8">
-            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                <!-- Controls -->
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                <!-- Controls + Kernel Preview -->
                 <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700">
-                    <h3 class="text-xl font-semibold text-cyan-300 mb-4">Controls</h3>
+                    <h3 class="text-xl font-semibold text-cyan-300 mb-4">Structuring Element</h3>
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-slate-300 mb-2">Structuring Element</label>
+                            <label class="block text-sm font-medium text-slate-300 mb-2">Shape</label>
                             <select id="seShape" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white">
                                 <option value="square">Square</option>
                                 <option value="cross">Cross</option>
@@ -92,52 +92,33 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-slate-300 mb-2">Iterations: <span id="iterVal" class="font-mono">1</span></label>
-                            <input id="iterations" type="range" min="1" max="10" step="1" value="1" class="w-full accent-cyan-500 cursor-pointer">
+                            <input id="seIterations" type="range" min="1" max="3" step="1" value="1" class="w-full accent-cyan-500 cursor-pointer">
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-300 mb-2">Binarize Threshold: <span id="thVal" class="font-mono">128</span></label>
-                            <input id="threshold" type="range" min="0" max="255" step="1" value="128" class="w-full accent-cyan-500 cursor-pointer">
-                            <div class="mt-2 flex items-center space-x-2">
-                                <input id="enableBinarize" type="checkbox" class="w-4 h-4 text-cyan-500">
-                                <label for="enableBinarize" class="text-sm text-slate-300">Enable Binarization</label>
+                        <div class="mt-4">
+                            <h4 class="text-sm font-semibold text-slate-200 mb-2">SE Preview</h4>
+                            <div class="canvas-container">
+                                <canvas id="kernelCanvas" width="220" height="220" class="border-2 border-slate-600 rounded-lg bg-slate-900"></canvas>
                             </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-2 pt-2">
-                            <button id="applyBtn" class="px-3 py-2 bg-cyan-600 hover:bg-cyan-700 rounded text-sm font-semibold">Apply Erosion</button>
-                            <button id="resetBtn" class="px-3 py-2 bg-slate-600 hover:bg-slate-700 rounded text-sm font-semibold">Reset</button>
-                        </div>
                     </div>
                 </div>
 
-                <!-- Input Canvas -->
-                <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 flex flex-col items-center">
+                <!-- Interactive Demonstration Grid -->
+                <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 flex flex-col items-center xl:col-span-2">
                     <div class="flex items-center justify-between mb-4 w-full">
-                        <h3 class="text-xl font-semibold text-red-400">Input Image</h3>
+                        <h3 class="text-xl font-semibold text-cyan-400">Interactive Demonstration</h3>
                         <div class="flex space-x-2">
-                            <button id="clearInput" class="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-sm transition-colors">Clear</button>
-                            <button id="randomInput" class="px-3 py-1 bg-purple-600 hover:bg-purple-700 rounded text-sm transition-colors">Random</button>
+                            <button id="applyErosion" class="px-3 py-1 bg-cyan-600 hover:bg-cyan-700 rounded text-sm transition-colors">Apply Erosion</button>
+                            <button id="resetGrid" class="px-3 py-1 bg-slate-600 hover:bg-slate-700 rounded text-sm transition-colors">Reset Grid</button>
                         </div>
                     </div>
                     <div class="canvas-container">
-                        <canvas id="inputCanvas" width="200" height="200" class="border-2 border-slate-600 rounded-lg cursor-crosshair"></canvas>
+                        <canvas id="demoCanvas" width="330" height="330" class="border-2 border-slate-600 rounded-lg cursor-pointer"></canvas>
                     </div>
-                    <div class="mt-4 text-center">
-                        <p class="text-sm text-slate-400">Click and drag to draw (white on black)</p>
-                    </div>
-                </div>
-
-                <!-- Result Canvas -->
-                <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 flex flex-col items-center">
-                    <div class="flex items-center justify-between mb-4 w-full">
-                        <h3 class="text-xl font-semibold text-cyan-400">Eroded Result</h3>
-                        <div class="flex space-x-2">
-                            <button id="presetGrid" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 rounded text-sm transition-colors">Preset: Grid</button>
-                            <button id="presetShapes" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 rounded text-sm transition-colors">Preset: Shapes</button>
-                        </div>
-                    </div>
-                    <div class="canvas-container">
-                        <canvas id="resultCanvas" width="200" height="200" class="border-2 border-cyan-500 rounded-lg"></canvas>
-                    </div>
+                    <p class="mt-3 text-sm text-slate-400 text-center">
+                        Hover to see a single erosion step. Click to toggle pixels.
+                        <br>The center pixel is eroded (darkened) if the SE doesn't fit.
+                    </p>
                 </div>
             </div>
         </section>
@@ -152,116 +133,24 @@
     </div>
 
     <script>
-        // Canvas refs
-        const inputCanvas = document.getElementById('inputCanvas');
-        const resultCanvas = document.getElementById('resultCanvas');
-        const ctxIn = inputCanvas.getContext('2d');
-        const ctxOut = resultCanvas.getContext('2d');
+        // Kernel preview canvas
+        const kernelCanvas = document.getElementById('kernelCanvas');
+        const kctx = kernelCanvas.getContext('2d');
+
+        // Demo canvas
+        const demoCanvas = document.getElementById('demoCanvas');
+        const dctx = demoCanvas.getContext('2d');
 
         // Controls
         const seShape = document.getElementById('seShape');
         const seSize = document.getElementById('seSize');
         const sizeVal = document.getElementById('sizeVal');
-        const iterations = document.getElementById('iterations');
+        const seIterations = document.getElementById('seIterations');
         const iterVal = document.getElementById('iterVal');
-        const threshold = document.getElementById('threshold');
-        const thVal = document.getElementById('thVal');
-        const enableBinarize = document.getElementById('enableBinarize');
-        const applyBtn = document.getElementById('applyBtn');
-        const resetBtn = document.getElementById('resetBtn');
-        const clearInput = document.getElementById('clearInput');
-        const randomInput = document.getElementById('randomInput');
-        const presetGrid = document.getElementById('presetGrid');
-        const presetShapes = document.getElementById('presetShapes');
-
-        // Draw state
-        let isDrawing = false;
-        const brushSize = 10;
-
-        function initCanvas(canvas, ctx) {
-            ctx.fillStyle = '#000000';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = brushSize;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-        }
-
-        function getPos(e, canvas) {
-            const rect = canvas.getBoundingClientRect();
-            return { x: e.clientX - rect.left, y: e.clientY - rect.top };
-        }
-
-        inputCanvas.addEventListener('mousedown', (e) => {
-            const p = getPos(e, inputCanvas);
-            ctxIn.beginPath();
-            ctxIn.moveTo(p.x, p.y);
-            isDrawing = true;
-        });
-        inputCanvas.addEventListener('mousemove', (e) => {
-            if (!isDrawing) return;
-            const p = getPos(e, inputCanvas);
-            ctxIn.lineTo(p.x, p.y);
-            ctxIn.stroke();
-        });
-        inputCanvas.addEventListener('mouseup', () => { isDrawing = false; });
-        inputCanvas.addEventListener('mouseout', () => { isDrawing = false; });
-
-        clearInput.addEventListener('click', () => { initCanvas(inputCanvas, ctxIn); drawResult(); });
-        randomInput.addEventListener('click', () => { randomizeInput(); drawResult(); });
-        presetGrid.addEventListener('click', () => { presetGridPattern(); drawResult(); });
-        presetShapes.addEventListener('click', () => { presetShapesPattern(); drawResult(); });
-
-        seSize.addEventListener('input', () => { sizeVal.textContent = seSize.value; });
-        iterations.addEventListener('input', () => { iterVal.textContent = iterations.value; });
-        threshold.addEventListener('input', () => { thVal.textContent = threshold.value; });
-
-        applyBtn.addEventListener('click', drawResult);
-        resetBtn.addEventListener('click', () => {
-            seShape.value = 'square';
-            seSize.value = 3; sizeVal.textContent = '3';
-            iterations.value = 1; iterVal.textContent = '1';
-            threshold.value = 128; thVal.textContent = '128';
-            enableBinarize.checked = false;
-            drawResult();
-        });
-
-        function randomizeInput() {
-            const img = ctxIn.createImageData(inputCanvas.width, inputCanvas.height);
-            const d = img.data;
-            for (let i = 0; i < d.length; i += 4) {
-                const v = Math.random() < 0.1 ? 255 : 0; // sparse white noise
-                d[i] = v; d[i+1] = v; d[i+2] = v; d[i+3] = 255;
-            }
-            ctxIn.putImageData(img, 0, 0);
-        }
-
-        function presetGridPattern() {
-            const img = ctxIn.createImageData(inputCanvas.width, inputCanvas.height);
-            const d = img.data; const w = inputCanvas.width; const h = inputCanvas.height;
-            for (let y = 0; y < h; y++) {
-                for (let x = 0; x < w; x++) {
-                    const idx = (y * w + x) * 4;
-                    const v = (x % 20 === 0 || y % 20 === 0) ? 255 : 0;
-                    d[idx] = v; d[idx+1] = v; d[idx+2] = v; d[idx+3] = 255;
-                }
-            }
-            ctxIn.putImageData(img, 0, 0);
-        }
-
-        function presetShapesPattern() {
-            initCanvas(inputCanvas, ctxIn);
-            ctxIn.fillStyle = '#ffffff';
-            // rectangle
-            ctxIn.fillRect(40, 60, 120, 80);
-            // circle
-            ctxIn.beginPath(); ctxIn.arc(60, 60, 20, 0, Math.PI * 2); ctxIn.fill();
-            // diamond (rotated square)
-            ctxIn.beginPath(); ctxIn.moveTo(140, 50); ctxIn.lineTo(160, 70); ctxIn.lineTo(140, 90); ctxIn.lineTo(120, 70); ctxIn.closePath(); ctxIn.fill();
-        }
+        const applyErosion = document.getElementById('applyErosion');
+        const resetGrid = document.getElementById('resetGrid');
 
         function buildKernel(shape, size) {
-            // size is odd: e.g., 3,5,7
             const r = Math.floor(size / 2);
             const ker = [];
             for (let j = -r; j <= r; j++) {
@@ -273,74 +162,247 @@
                     if (keep) ker.push({dx: i, dy: j});
                 }
             }
-            return ker;
+            return { r, ker };
         }
 
-        function toGrayscale(imgData) {
-            const d = imgData.data;
-            for (let i = 0; i < d.length; i += 4) {
-                const v = Math.round(0.2126*d[i] + 0.7152*d[i+1] + 0.0722*d[i+2]);
-                d[i] = v; d[i+1] = v; d[i+2] = v; d[i+3] = 255;
-            }
-            return imgData;
-        }
+        // --- Demo Grid Logic ---
+        const GRID_SIZE = 15;
+        const CELL_SIZE = demoCanvas.width / GRID_SIZE;
+        let gridState = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0));
+        let originalGridState = null; // To store the user-drawn pattern
+        let hoverPos = null;
 
-        function binarize(imgData, th) {
-            const d = imgData.data;
-            for (let i = 0; i < d.length; i += 4) {
-                const v = d[i] >= th ? 255 : 0;
-                d[i] = v; d[i+1] = v; d[i+2] = v; d[i+3] = 255;
-            }
-            return imgData;
-        }
-
-        function erodeOnce(src, kernel) {
-            const w = src.width, h = src.height;
-            const s = src.data;
-            const out = new ImageData(w, h);
-            const d = out.data;
-            for (let y = 0; y < h; y++) {
-                for (let x = 0; x < w; x++) {
-                    let minV = 255;
-                    for (const k of kernel) {
-                        const xx = Math.min(w - 1, Math.max(0, x + k.dx));
-                        const yy = Math.min(h - 1, Math.max(0, y + k.dy));
-                        const idx = (yy * w + xx) * 4;
-                        if (s[idx] < minV) minV = s[idx];
+        function initDemoGrid() {
+            // Create a default shape
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    // Make a thick 'L' shape
+                    if ((x >= 3 && x <= 5 && y >= 3 && y < 12) || (y >= 9 && y <= 11 && x >= 3 && x < 10)) {
+                        gridState[y][x] = 1;
+                    } else {
+                        gridState[y][x] = 0;
                     }
-                    const di = (y * w + x) * 4;
-                    d[di] = minV; d[di+1] = minV; d[di+2] = minV; d[di+3] = 255;
                 }
             }
-            return out;
+            originalGridState = JSON.parse(JSON.stringify(gridState)); // Deep copy
+            drawDemoGrid();
         }
 
-        function applyErosion(img, kernel, iters) {
-            let cur = img;
-            for (let i = 0; i < iters; i++) {
-                cur = erodeOnce(cur, kernel);
-            }
-            return cur;
-        }
-
-        function drawResult() {
-            // Get input as grayscale (and optional binarize)
-            const src = ctxIn.getImageData(0, 0, inputCanvas.width, inputCanvas.height);
-            let gray = toGrayscale(new ImageData(new Uint8ClampedArray(src.data), src.width, src.height));
-            if (enableBinarize.checked) gray = binarize(gray, parseInt(threshold.value, 10));
-
+        function erodeGridOnce(inputGrid) {
+            const newGrid = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0));
             const size = parseInt(seSize.value, 10);
-            const kernel = buildKernel(seShape.value, size);
-            const iters = parseInt(iterations.value, 10);
+            const { ker } = buildKernel(seShape.value, size);
 
-            const eroded = applyErosion(gray, kernel, iters);
-            ctxOut.putImageData(eroded, 0, 0);
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    let fits = true;
+                    for (const k of ker) {
+                        const kx = x + k.dx;
+                        const ky = y + k.dy;
+                        if (kx < 0 || kx >= GRID_SIZE || ky < 0 || ky >= GRID_SIZE || inputGrid[ky][kx] === 0) {
+                            fits = false;
+                            break;
+                        }
+                    }
+                    newGrid[y][x] = (inputGrid[y][x] && fits) ? 1 : 0;
+                }
+            }
+            return newGrid;
         }
+
+        function drawDemoGrid() {
+            dctx.fillStyle = '#0f172a'; // slate-900
+            dctx.fillRect(0, 0, demoCanvas.width, demoCanvas.height);
+
+            // Draw base grid cells
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    dctx.fillStyle = gridState[y][x] ? '#e2e8f0' : '#1e293b'; // slate-200 / slate-800
+                    dctx.fillRect(x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+                }
+            }
+
+            if (hoverPos) {
+                const size = parseInt(seSize.value, 10);
+                const { r, ker } = buildKernel(seShape.value, size);
+                const hx = hoverPos.x;
+                const hy = hoverPos.y;
+
+                let fits = true;
+
+                // Draw SE overlay and check for erosion
+                for (const k of ker) {
+                    const kx = hx + k.dx;
+                    const ky = hy + k.dy;
+
+                    if (kx >= 0 && kx < GRID_SIZE && ky >= 0 && ky < GRID_SIZE) {
+                        // Check if the SE fits
+                        if (gridState[ky][kx] === 0) {
+                            fits = false;
+                        }
+                        // Draw SE overlay
+                        dctx.fillStyle = 'rgba(34, 211, 238, 0.5)'; // cyan-400 with alpha
+                        dctx.fillRect(kx * CELL_SIZE, ky * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                    } else {
+                        // SE is off the grid, so it doesn't fit
+                        fits = false;
+                    }
+                }
+
+                // Draw SE origin
+                dctx.strokeStyle = '#eab308'; // amber-400
+                dctx.lineWidth = 2;
+                dctx.strokeRect(hx * CELL_SIZE + 1, hy * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+
+                // Show erosion result
+                const resultColor = (gridState[hy][hx] && fits) ? '#e2e8f0' : '#1e293b';
+                dctx.fillStyle = resultColor;
+                dctx.globalAlpha = 0.7;
+                dctx.fillRect(hx * CELL_SIZE + 1, hy * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+                dctx.globalAlpha = 1.0;
+
+                // Add a marker to show the result
+                dctx.strokeStyle = fits ? '#10b981' : '#f43f5e'; // emerald-500 or rose-600
+                dctx.lineWidth = 3;
+                dctx.strokeRect(hx * CELL_SIZE, hy * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+            }
+        }
+
+        demoCanvas.addEventListener('mousemove', (e) => {
+            const rect = demoCanvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            const gridX = Math.floor(mouseX / CELL_SIZE);
+            const gridY = Math.floor(mouseY / CELL_SIZE);
+
+            if (gridX >= 0 && gridX < GRID_SIZE && gridY >= 0 && gridY < GRID_SIZE) {
+                if (!hoverPos || hoverPos.x !== gridX || hoverPos.y !== gridY) {
+                    hoverPos = { x: gridX, y: gridY };
+                    drawDemoGrid();
+                }
+            } else {
+                hoverPos = null;
+                drawDemoGrid();
+            }
+        });
+
+        demoCanvas.addEventListener('mouseleave', () => {
+            hoverPos = null;
+            drawDemoGrid();
+        });
+
+        demoCanvas.addEventListener('click', (e) => {
+            const rect = demoCanvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            const gridX = Math.floor(mouseX / CELL_SIZE);
+            const gridY = Math.floor(mouseY / CELL_SIZE);
+
+            if (gridX >= 0 && gridX < GRID_SIZE && gridY >= 0 && gridY < GRID_SIZE) {
+                gridState[gridY][gridX] = 1 - gridState[gridY][gridX]; // Toggle 0 and 1
+                originalGridState[gridY][gridX] = gridState[gridY][gridX]; // Update the original state too
+                drawDemoGrid();
+            }
+        });
+
+        applyErosion.addEventListener('click', async () => {
+            // Disable controls during animation
+            const controlsToToggle = [applyErosion, resetGrid, seShape, seSize, seIterations, demoCanvas];
+            controlsToToggle.forEach(el => el.disabled = true);
+            demoCanvas.style.cursor = 'wait';
+
+            const iterations = parseInt(seIterations.value, 10);
+            let currentGrid = JSON.parse(JSON.stringify(originalGridState)); // Start from original
+
+            for (let iter = 0; iter < iterations; iter++) {
+                const nextGrid = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0));
+                gridState = currentGrid; // Set gridState for hover visualization
+
+                // Animate the traversal for one iteration
+                for (let y = 0; y < GRID_SIZE; y++) {
+                    for (let x = 0; x < GRID_SIZE; x++) {
+                        hoverPos = { x, y };
+                        drawDemoGrid(); // This will show the SE at the current (x,y)
+
+                        // Perform the erosion check for the current pixel
+                        const size = parseInt(seSize.value, 10);
+                        const { ker } = buildKernel(seShape.value, size);
+                        let fits = true;
+                        for (const k of ker) {
+                            const kx = x + k.dx;
+                            const ky = y + k.dy;
+                            if (kx < 0 || kx >= GRID_SIZE || ky < 0 || ky >= GRID_SIZE || currentGrid[ky][kx] === 0) {
+                                fits = false;
+                                break;
+                            }
+                        }
+                        nextGrid[y][x] = (currentGrid[y][x] && fits) ? 1 : 0;
+
+                        await new Promise(r => setTimeout(r, 50)); // Increased delay for animation
+                    }
+                }
+                currentGrid = nextGrid; // Update the grid state for the next iteration
+                gridState = currentGrid;
+                hoverPos = null;
+                drawDemoGrid(); // Show the final state of this iteration
+
+                if (iter < iterations - 1) {
+                    await new Promise(r => setTimeout(r, 400)); // Pause between iterations
+                }
+            }
+            controlsToToggle.forEach(el => el.disabled = false);
+            demoCanvas.style.cursor = 'pointer';
+        });
+
+        resetGrid.addEventListener('click', () => {
+            gridState = JSON.parse(JSON.stringify(originalGridState));
+            drawDemoGrid();
+        });
+
+        function renderKernel() {
+            const size = parseInt(seSize.value, 10);
+            const { r } = buildKernel(seShape.value, size);
+            const cells = (r * 2) + 1;
+            const pad = 10;
+            const cellSize = Math.floor((kernelCanvas.width - pad * 2) / cells);
+            // clear
+            kctx.fillStyle = '#0f172a';
+            kctx.fillRect(0, 0, kernelCanvas.width, kernelCanvas.height);
+
+            // grid and fill
+            for (let y = -r; y <= r; y++) {
+                for (let x = -r; x <= r; x++) {
+                    const cx = pad + (x + r) * cellSize;
+                    const cy = pad + (y + r) * cellSize;
+                    // cell bg
+                    kctx.fillStyle = '#1f2937';
+                    kctx.fillRect(cx, cy, cellSize - 2, cellSize - 2);
+                    // decide if in SE
+                    let inSE = false;
+                    if (seShape.value === 'square') inSE = true;
+                    else if (seShape.value === 'cross') inSE = (x === 0 || y === 0);
+                    else if (seShape.value === 'disk') inSE = (x*x + y*y) <= r*r + 0.0001;
+                    if (inSE) {
+                        kctx.fillStyle = '#22d3ee';
+                        kctx.fillRect(cx + 3, cy + 3, cellSize - 8, cellSize - 8);
+                    }
+                }
+            }
+            // center mark
+            kctx.strokeStyle = '#eab308';
+            kctx.lineWidth = 2;
+            const ccx = pad + r * cellSize;
+            const ccy = pad + r * cellSize;
+            kctx.strokeRect(ccx + 1, ccy + 1, cellSize - 4, cellSize - 4);
+        }
+
+        seSize.addEventListener('input', () => { sizeVal.textContent = seSize.value; renderKernel(); drawDemoGrid(); });
+        seShape.addEventListener('change', () => { renderKernel(); drawDemoGrid(); });
+        seIterations.addEventListener('input', () => { iterVal.textContent = seIterations.value; });
 
         // Initialize
-        initCanvas(inputCanvas, ctxIn);
-        initCanvas(resultCanvas, ctxOut);
-        drawResult();
+        initDemoGrid();
+        renderKernel();
     </script>
 
 </body>
