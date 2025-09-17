@@ -3,117 +3,497 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2D Transformations</title>
+    <title>Interactive 2D Graphics Demo</title>
+    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
+        /* Use the Inter font family */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #111827;
-            color: #d1d5db;
         }
-        canvas {
-            background-color: #1f2937;
-            border: 1px solid #374151;
-            border-radius: 0.5rem;
+        /* Custom styles for sliders for better cross-browser appearance */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #475569; /* slate-600 */
+            border-radius: 9999px;
+            outline: none;
         }
-        .control-panel-bg {
-            background-color: rgba(31, 41, 55, 0.8);
-            backdrop-filter: blur(10px);
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #2dd4bf; /* teal-400 */
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid #1e293b; /* slate-800 */
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #2dd4bf; /* teal-400 */
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid #1e293b; /* slate-800 */
         }
     </style>
 </head>
-<body class="antialiased">
-    <div class="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
-        <div class="w-full max-w-7xl mx-auto">
-            <!-- Header -->
-            <header class="text-center mb-8">
-                <h1 class="text-3xl sm:text-4xl font-bold text-white tracking-tight">2D Transformations</h1>
-                <p class="mt-2 text-lg text-slate-400">Interactively apply translation, rotation, and scaling to a shape.</p>
-            </header>
+<body class="bg-slate-900 flex items-center justify-center min-h-screen p-4">
 
-            <!-- Main Content -->
-            <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                
-                <!-- Left Panel: Canvas -->
-                <div class="lg:col-span-2 bg-slate-900 p-6 rounded-xl shadow-2xl">
-                    <canvas id="mainCanvas" width="800" height="600" class="w-full h-auto"></canvas>
+    <div class="w-full max-w-6xl bg-slate-800 text-slate-300 rounded-2xl shadow-2xl shadow-black/50 p-6 md:p-10 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 border border-slate-700">
+        <!-- Left Side: Controls and Explanation -->
+        <div class="flex flex-col">
+            <div>
+                <h1 class="text-3xl font-bold text-cyan-400">Interactive 2D Transformations</h1>
+                <p class="mt-2 text-slate-400">
+                    Use the sliders to manipulate the shape on the left. This demonstrates the basic transformations in computer graphics: <strong class="text-teal-400">Translate</strong> (move), <strong class="text-teal-400">Rotate</strong>, <strong class="text-teal-400">Scale</strong> (resize), and <strong class="text-teal-400">Reflect</strong> (flip).
+                </p>
+            </div>
+
+            <div class="mt-6 border-t border-slate-700 pt-6">
+                <h3 class="text-lg font-semibold text-cyan-300">The Math Behind It</h3>
+                <p class="mt-2 text-sm text-slate-400">These transformations are applied to every point P(x, y) on the shape to find its new position P'(x', y').</p>
+                <p class="mt-2 text-sm text-slate-400">The initial shape is a rectangle with a <b>width of 80px</b> and a <b>height of 50px</b>.</p>
+                <div class="mt-2 text-sm text-slate-300 p-3 bg-emerald-900/50 border border-emerald-800 rounded-lg">
+                    Let's track the rectangle's top-left corner, point 
+                    <b>P(<span id="initial-x">-40</span>, <span id="initial-y">-25</span>)</b>, 
+                    to its new position 
+                    <b>P'(<span id="final-x" class="text-slate-300 font-semibold">120.0</span>, <span id="final-y" class="text-slate-300 font-semibold">95.0</span>)</b>.
                 </div>
-
-                <!-- Right Panel: Controls -->
-                <div class="lg:col-span-1 bg-slate-900 p-6 rounded-xl shadow-2xl control-panel-bg">
-                    <h2 class="text-2xl font-semibold text-white mb-6 border-b border-slate-700 pb-3">Controls</h2>
+                <div class="mt-4 space-y-3 font-mono text-sm bg-slate-900 p-4 rounded-lg text-slate-300">
+                    <div>
+                        <p class="font-sans font-semibold text-slate-300">1. Scaling & Reflection</p>
+                        <p class="ml-4"><span id="scale-result-x" class="text-emerald-400 font-bold w-10 inline-block text-right">x'</span> = <span id="scale-initial-x" class="w-8 inline-block text-right">-40</span> * <span id="formula-sx" class="text-teal-400 font-bold">1.00</span></p>
+                        <p class="ml-4"><span id="scale-result-y" class="text-emerald-400 font-bold w-10 inline-block text-right">y'</span> = <span id="scale-initial-y" class="w-8 inline-block text-right">-25</span> * <span id="formula-sy" class="text-teal-400 font-bold">1.00</span></p>
+                    </div>
                     
-                    <div class="space-y-6">
-                        <!-- Translation -->
-                        <div>
-                            <label class="text-lg font-medium text-slate-300">Translate</label>
-                            <div class="mt-2 space-y-3">
-                                <div class="flex items-center gap-3">
-                                    <span class="font-mono text-sky-400 w-4">X</span>
-                                    <input type="range" id="translateX" min="-200" max="200" value="0" class="w-full">
-                                    <span id="translateX-val" class="font-mono text-white w-12 text-center">0</span>
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <span class="font-mono text-sky-400 w-4">Y</span>
-                                    <input type="range" id="translateY" min="-150" max="150" value="0" class="w-full">
-                                    <span id="translateY-val" class="font-mono text-white w-12 text-center">0</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Rotation -->
-                        <div>
-                            <label for="rotation" class="text-lg font-medium text-slate-300">Rotate</label>
-                            <div class="mt-2 flex items-center gap-3">
-                                <span class="font-mono text-green-400">θ</span>
-                                <input type="range" id="rotation" min="-180" max="180" value="0" class="w-full">
-                                <span id="rotation-val" class="font-mono text-white w-12 text-center">0°</span>
-                            </div>
-                        </div>
-
-                        <!-- Scaling -->
-                        <div>
-                            <label class="text-lg font-medium text-slate-300">Scale</label>
-                            <div class="mt-2 space-y-3">
-                                <div class="flex items-center gap-3">
-                                    <span class="font-mono text-red-400 w-4">X</span>
-                                    <input type="range" id="scaleX" min="0.1" max="3" value="1" step="0.1" class="w-full">
-                                    <span id="scaleX-val" class="font-mono text-white w-12 text-center">1.0</span>
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <span class="font-mono text-red-400 w-4">Y</span>
-                                    <input type="range" id="scaleY" min="0.1" max="3" value="1" step="0.1" class="w-full">
-                                    <span id="scaleY-val" class="font-mono text-white w-12 text-center">1.0</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Reset Button -->
-                        <button id="resetBtn" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300">Reset</button>
+                    <div class="pt-2">
+                        <p class="font-sans font-semibold text-slate-300">2. Rotation (by <span id="formula-theta-val" class="text-teal-400 font-bold">0</span>°)</p>
+                        <p class="ml-4"><span id="rot-result-x" class="text-emerald-400 font-bold w-10 inline-block text-right">x''</span> = <span id="rot-initial-x1" class="w-8 inline-block text-right">x'</span>&nbsp;cos(<span id="formula-theta1" class="text-teal-400 font-bold">0</span>) - <span id="rot-initial-y1" class="w-8 inline-block text-right">y'</span>&nbsp;sin(<span id="formula-theta2" class="text-teal-400 font-bold">0</span>)</p>
+                        <p class="ml-4"><span id="rot-result-y" class="text-emerald-400 font-bold w-10 inline-block text-right">y''</span> = <span id="rot-initial-x2" class="w-8 inline-block text-right">x'</span>&nbsp;sin(<span id="formula-theta3" class="text-teal-400 font-bold">0</span>) + <span id="rot-initial-y2" class="w-8 inline-block text-right">y'</span>&nbsp;cos(<span id="formula-theta4" class="text-teal-400 font-bold">0</span>)</p>
                     </div>
 
-                    <!-- Transformation Matrix -->
-                    <div class="mt-8">
-                        <h3 class="text-lg font-medium text-slate-300 mb-3 text-center">Transformation Matrix</h3>
-                        <div id="matrix-display" class="grid grid-cols-3 gap-2 p-4 rounded-lg bg-slate-900/50 font-mono text-center text-lg text-white">
-                            <span>1</span><span>0</span><span>0</span>
-                            <span>0</span><span>1</span><span>0</span>
-                            <span>0</span><span>0</span><span>1</span>
-                        </div>
+                    <div class="pt-2">
+                         <p class="font-sans font-semibold text-slate-300">3. Translation</p>
+                        <p class="ml-4"><span id="trans-result-x" class="text-emerald-400 font-bold w-10 inline-block text-right">x'''</span> = <span id="trans-initial-x" class="w-8 inline-block text-right">x''</span> + <span id="formula-tx" class="text-teal-400 font-bold">160</span></p>
+                        <p class="ml-4"><span id="trans-result-y" class="text-emerald-400 font-bold w-10 inline-block text-right">y'''</span> = <span id="trans-initial-y" class="w-8 inline-block text-right">y''</span> + <span id="formula-ty" class="text-teal-400 font-bold">120</span></p>
                     </div>
                 </div>
-            </main>
+            </div>
 
-             <!-- Footer Link -->
-             <footer class="text-center mt-12">
-                <a href="index.html" class="text-sky-400 hover:text-sky-300 transition-colors duration-300 text-lg">&larr; Back to Main Menu</a>
-            </footer>
+            <div class="mt-8 space-y-6">
+                <!-- Translate X Control -->
+                <div>
+                    <div class="flex justify-between items-center">
+                        <label for="translateX" class="font-semibold text-slate-300">Translate X</label>
+                        <span id="translateX-value" class="text-sm font-mono bg-slate-700 text-slate-200 px-2 py-1 rounded">160 px</span>
+                    </div>
+                    <input type="range" id="translateX" min="0" max="320" value="160" class="mt-2">
+                </div>
+
+                <!-- Translate Y Control -->
+                <div>
+                    <div class="flex justify-between items-center">
+                        <label for="translateY" class="font-semibold text-slate-300">Translate Y</label>
+                        <span id="translateY-value" class="text-sm font-mono bg-slate-700 text-slate-200 px-2 py-1 rounded">120 px</span>
+                    </div>
+                    <input type="range" id="translateY" min="0" max="240" value="120" class="mt-2">
+                </div>
+
+                <!-- Rotate Control -->
+                <div>
+                    <div class="flex justify-between items-center">
+                        <label for="rotate" class="font-semibold text-slate-300">Rotate</label>
+                        <span id="rotate-value" class="text-sm font-mono bg-slate-700 text-slate-200 px-2 py-1 rounded">0 deg</span>
+                    </div>
+                    <input type="range" id="rotate" min="0" max="360" value="0" step="1" class="mt-2">
+                </div>
+                
+                <!-- Scale Control -->
+                <div>
+                    <div class="flex justify-between items-center">
+                        <label for="scale" class="font-semibold text-slate-300">Scale</label>
+                        <span id="scale-value" class="text-sm font-mono bg-slate-700 text-slate-200 px-2 py-1 rounded">1.0x</span>
+                    </div>
+                    <input type="range" id="scale" min="0.5" max="2.5" value="1" step="0.05" class="mt-2">
+                </div>
+
+                <!-- Reflection Controls -->
+                <div>
+                    <label class="font-semibold text-slate-300">Reflection</label>
+                    <div class="mt-2 grid grid-cols-2 gap-2">
+                        <button id="reflectX" class="px-4 py-2 text-sm font-medium text-slate-200 bg-slate-700 rounded-md hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-teal-500 transition-colors">
+                            Flip Horizontal
+                        </button>
+                        <button id="reflectY" class="px-4 py-2 text-sm font-medium text-slate-200 bg-slate-700 rounded-md hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-teal-500 transition-colors">
+                            Flip Vertical
+                        </button>
+                    </div>
+                </div>
+            </div>
+             <div class="mt-8 text-center text-slate-500 text-xs">
+                <p>This is a basic demonstration. Real graphics applications apply these transformations using matrix math for efficiency.</p>
+            </div>
+        </div>
+
+        <!-- Right Side: Canvas for Visualization -->
+        <div class="flex flex-col items-center justify-center bg-slate-900 rounded-lg p-4 border border-slate-700">
+            <h2 class="text-lg font-bold text-cyan-300 mb-4">Visual Output</h2>
+            <div class="grid" style="grid-template-columns: auto 1fr; grid-template-rows: auto 1fr;">
+                <!-- Empty corner -->
+                <div class=""></div>
+                <!-- X-axis labels are dynamically generated here -->
+                <div id="x-axis-labels" class="relative h-6"></div>
+                <!-- Y-axis labels are dynamically generated here -->
+                <div id="y-axis-labels" class="relative w-10 text-right pr-6"></div>
+                <!-- Canvas -->
+                <canvas id="graphics-canvas" width="320" height="240" class="bg-slate-800 border-2 border-slate-700"></canvas>
+            </div>
+            <!-- Action Buttons -->
+            <div class="w-full mt-6 flex flex-col items-center space-y-2">
+                <button id="reset-btn" class="w-32 px-6 py-2 text-sm font-medium text-slate-200 bg-slate-700 rounded-md hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-teal-500 transition-colors">
+                    Reset
+                </button>
+                <button onclick="window.history.back()" class="w-32 px-6 py-2 text-sm font-medium text-slate-200 bg-slate-700 rounded-md hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-teal-500 transition-colors">
+                    Go Back
+                </button>
+            </div>
         </div>
     </div>
 
     <script>
-        // JavaScript for 2D Transformations will go here
+        // Get all the DOM elements we need to interact with
+        const canvas = document.getElementById('graphics-canvas');
+        const ctx = canvas.getContext('2d');
+
+        const translateXSlider = document.getElementById('translateX');
+        const translateYSlider = document.getElementById('translateY');
+        const rotateSlider = document.getElementById('rotate');
+        const scaleSlider = document.getElementById('scale');
+        const reflectXBtn = document.getElementById('reflectX');
+        const reflectYBtn = document.getElementById('reflectY');
+        const resetBtn = document.getElementById('reset-btn');
+
+        const translateXValue = document.getElementById('translateX-value');
+        const translateYValue = document.getElementById('translateY-value');
+        const rotateValue = document.getElementById('rotate-value');
+        const scaleValue = document.getElementById('scale-value');
+
+        // Get the formula value elements
+        const formulaTx = document.getElementById('formula-tx');
+        const formulaTy = document.getElementById('formula-ty');
+        const formulaThetaVal = document.getElementById('formula-theta-val');
+        const formulaTheta1 = document.getElementById('formula-theta1');
+        const formulaTheta2 = document.getElementById('formula-theta2');
+        const formulaTheta3 = document.getElementById('formula-theta3');
+        const formulaTheta4 = document.getElementById('formula-theta4');
+        const formulaSx = document.getElementById('formula-sx');
+        const formulaSy = document.getElementById('formula-sy');
+        const initialX = document.getElementById('initial-x');
+        const initialY = document.getElementById('initial-y');
+        const finalX = document.getElementById('final-x');
+        const finalY = document.getElementById('final-y');
+
+        // --- Formula value elements for step-by-step calculation ---
+        // Scaling
+        const scaleInitialX = document.getElementById('scale-initial-x');
+        const scaleInitialY = document.getElementById('scale-initial-y');
+        const scaleResultX = document.getElementById('scale-result-x');
+        const scaleResultY = document.getElementById('scale-result-y');
+        // Rotation
+        const rotInitialX1 = document.getElementById('rot-initial-x1');
+        const rotInitialY1 = document.getElementById('rot-initial-y1');
+        const rotInitialX2 = document.getElementById('rot-initial-x2');
+        const rotInitialY2 = document.getElementById('rot-initial-y2');
+        const rotResultX = document.getElementById('rot-result-x');
+        const rotResultY = document.getElementById('rot-result-y');
+        // Translation
+        const transInitialX = document.getElementById('trans-initial-x');
+        const transInitialY = document.getElementById('trans-initial-y');
+        const transResultX = document.getElementById('trans-result-x');
+        const transResultY = document.getElementById('trans-result-y');
+
+
+        // Define the initial state for resetting
+        const initialState = {
+            tx: 160,
+            ty: 120,
+            angle: 0,
+            scale: 1,
+            reflectX: 1,
+            reflectY: 1,
+        };
+
+        // Define a sample point to track (top-left corner of the rectangle)
+        const samplePoint = { x: -40, y: -25 };
+
+        // A state object to hold the current transformation values
+        const transformations = {
+            tx: parseFloat(translateXSlider.value),
+            ty: parseFloat(translateYSlider.value),
+            angle: parseFloat(rotateSlider.value),
+            scale: parseFloat(scaleSlider.value),
+            reflectX: 1, // 1 for normal, -1 for reflected
+            reflectY: 1, // 1 for normal, -1 for reflected
+        };
+
+        // Function to reset all transformations to their initial state
+        function resetTransformations() {
+            // Reset the state object
+            transformations.tx = initialState.tx;
+            transformations.ty = initialState.ty;
+            transformations.angle = initialState.angle;
+            transformations.scale = initialState.scale;
+            transformations.reflectX = initialState.reflectX;
+            transformations.reflectY = initialState.reflectY;
+
+            // Reset the slider and value displays
+            translateXSlider.value = initialState.tx;
+            translateXValue.textContent = `${initialState.tx} px`;
+            translateYSlider.value = initialState.ty;
+            translateYValue.textContent = `${initialState.ty} px`;
+            rotateSlider.value = initialState.angle;
+            rotateValue.textContent = `${initialState.angle} deg`;
+            scaleSlider.value = initialState.scale;
+            scaleValue.textContent = `${initialState.scale.toFixed(2)}x`;
+
+            // Reset reflection buttons UI
+            reflectXBtn.classList.remove('bg-teal-500', 'text-white');
+            reflectXBtn.classList.add('bg-slate-700', 'text-slate-200');
+            reflectYBtn.classList.remove('bg-teal-500', 'text-white');
+            reflectYBtn.classList.add('bg-slate-700', 'text-slate-200');
+
+            // Update formulas and redraw the canvas
+            updateFormulas();
+            draw();
+        }
+
+        // Function to update the formula display
+        function updateFormulas() {
+            formulaTx.textContent = Math.round(transformations.tx);
+            formulaTy.textContent = Math.round(transformations.ty);
+            const angle = Math.round(transformations.angle);
+            formulaThetaVal.textContent = angle;
+            formulaTheta1.textContent = angle;
+            formulaTheta2.textContent = angle;
+            formulaTheta3.textContent = angle;
+            formulaTheta4.textContent = angle;
+            const scaleX = (transformations.scale * transformations.reflectX).toFixed(2);
+            const scaleY = (transformations.scale * transformations.reflectY).toFixed(2);
+            formulaSx.textContent = scaleX;
+            formulaSy.textContent = scaleY;
+
+            // --- Calculate and display the transformed sample point step-by-step ---
+            initialX.textContent = samplePoint.x;
+            initialY.textContent = samplePoint.y;
+
+            // 1. Apply Scale & Reflection
+            scaleInitialX.textContent = samplePoint.x.toFixed(1);
+            scaleInitialY.textContent = samplePoint.y.toFixed(1);
+            let x1 = samplePoint.x * transformations.scale * transformations.reflectX;
+            let y1 = samplePoint.y * transformations.scale * transformations.reflectY;
+            scaleResultX.textContent = x1.toFixed(1);
+            scaleResultY.textContent = y1.toFixed(1);
+
+
+            // 2. Apply Rotation
+            rotInitialX1.textContent = x1.toFixed(1);
+            rotInitialY1.textContent = y1.toFixed(1);
+            rotInitialX2.textContent = x1.toFixed(1);
+            rotInitialY2.textContent = y1.toFixed(1);
+            const angleInRadians = transformations.angle * Math.PI / 180;
+            const cosAngle = Math.cos(angleInRadians);
+            const sinAngle = Math.sin(angleInRadians);
+            let x2 = x1 * cosAngle - y1 * sinAngle;
+            let y2 = x1 * sinAngle + y1 * cosAngle;
+            rotResultX.textContent = x2.toFixed(1);
+            rotResultY.textContent = y2.toFixed(1);
+
+
+            // 3. Apply Translation
+            transInitialX.textContent = x2.toFixed(1);
+            transInitialY.textContent = y2.toFixed(1);
+            let x_final = x2 + transformations.tx;
+            let y_final = y2 + transformations.ty;
+            transResultX.textContent = x_final.toFixed(1);
+            transResultY.textContent = y_final.toFixed(1);
+            
+            finalX.textContent = x_final.toFixed(1);
+            finalY.textContent = y_final.toFixed(1);
+        }
+
+        // Function to create axis labels outside the canvas
+        function createAxisLabels() {
+            const xLabelsContainer = document.getElementById('x-axis-labels');
+            const yLabelsContainer = document.getElementById('y-axis-labels');
+            const gridSize = 40; // The interval for labels
+
+            // Clear any existing labels
+            xLabelsContainer.innerHTML = '';
+            yLabelsContainer.innerHTML = '';
+
+            // Create X-axis labels
+            for (let x = gridSize; x <= canvas.width; x += gridSize) {
+                const label = document.createElement('span');
+                label.textContent = x;
+                label.className = 'absolute text-xs text-slate-400';
+                label.style.left = `${x}px`;
+                label.style.transform = 'translateX(-50%)'; // Center the label on the tick
+                xLabelsContainer.appendChild(label);
+            }
+
+            // Create Y-axis labels
+            for (let y = gridSize; y <= canvas.height; y += gridSize) {
+                const label = document.createElement('span');
+                label.textContent = y;
+                label.className = 'absolute text-xs text-slate-400';
+                label.style.top = `${y}px`;
+                label.style.transform = 'translateY(-50%)'; // Center the label on the tick
+                yLabelsContainer.appendChild(label);
+            }
+        }
+
+        // Function to draw the background grid
+        function drawGrid() {
+            const gridSize = 20;
+            ctx.strokeStyle = '#334155'; // slate-700
+            ctx.lineWidth = 0.5;
+
+            // Draw vertical lines
+            for (let x = 0; x <= canvas.width; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+
+            // Draw horizontal lines
+            for (let y = 0; y <= canvas.height; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+        }
+
+        // The main drawing function. This is called whenever a value changes.
+        function draw() {
+            // Clear the entire canvas before drawing a new frame
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw a marker at the true canvas origin (0,0)
+            ctx.fillStyle = '#ef4444'; // A bright red color for visibility
+            ctx.beginPath();
+            ctx.arc(0, 0, 4, 0, 2 * Math.PI); // A small circle with a 4px radius
+            ctx.fill();
+
+            // Draw the grid first, so it's in the background
+            drawGrid();
+
+            // Save the default state of the context (no transformations)
+            ctx.save();
+
+            // 1. Apply Translation: Move the origin (0,0) of the canvas
+            ctx.translate(transformations.tx, transformations.ty);
+
+            // 2. Apply Rotation: Rotate the canvas around the new origin
+            // We need to convert degrees from the slider to radians for the canvas API
+            const angleInRadians = transformations.angle * Math.PI / 180;
+            ctx.rotate(angleInRadians);
+            
+            // 3. Apply Scaling: Scale the canvas from the new origin
+            ctx.scale(transformations.scale * transformations.reflectX, transformations.scale * transformations.reflectY);
+
+            // Now that the transformations are set, draw the shape.
+            ctx.fillStyle = '#2dd4bf'; // teal-400
+            
+            // By drawing it centered at (-40, -25), its rotation and scaling will be around its center.
+            ctx.fillRect(-40, -25, 80, 50);
+
+            // Add an asymmetrical marker (a small yellow triangle) to make the reflection obvious even without rotation.
+            ctx.fillStyle = '#f59e0b'; // amber-500
+            ctx.beginPath();
+            ctx.moveTo(-40, -25); // Top-left corner of the rectangle
+            ctx.lineTo(-20, -25); // Point along the top edge
+            ctx.lineTo(-40, -5);  // Point along the left edge
+            ctx.closePath();
+            ctx.fill();
+
+
+            // Restore the context to its original state (removes all transformations)
+            ctx.restore();
+        }
+
+        // --- Event Listeners ---
+        
+        translateXSlider.addEventListener('input', (e) => {
+            transformations.tx = parseFloat(e.target.value);
+            translateXValue.textContent = `${Math.round(transformations.tx)} px`;
+            updateFormulas();
+            draw();
+        });
+
+        translateYSlider.addEventListener('input', (e) => {
+            transformations.ty = parseFloat(e.target.value);
+            translateYValue.textContent = `${Math.round(transformations.ty)} px`;
+            updateFormulas();
+            draw();
+        });
+
+        rotateSlider.addEventListener('input', (e) => {
+            transformations.angle = parseFloat(e.target.value);
+            rotateValue.textContent = `${Math.round(transformations.angle)} deg`;
+            updateFormulas();
+            draw();
+        });
+
+        scaleSlider.addEventListener('input', (e) => {
+            transformations.scale = parseFloat(e.target.value);
+            scaleValue.textContent = `${transformations.scale.toFixed(2)}x`;
+            updateFormulas();
+            draw();
+        });
+
+        reflectXBtn.addEventListener('click', () => {
+            transformations.reflectX *= -1; // Toggle between 1 and -1
+            // Toggle button styles for visual feedback
+            reflectXBtn.classList.toggle('bg-teal-500');
+            reflectXBtn.classList.toggle('text-white');
+            reflectXBtn.classList.toggle('bg-slate-700');
+            reflectXBtn.classList.toggle('text-slate-200');
+            updateFormulas();
+            draw();
+        });
+
+        reflectYBtn.addEventListener('click', () => {
+            transformations.reflectY *= -1; // Toggle between 1 and -1
+            // Toggle button styles for visual feedback
+            reflectYBtn.classList.toggle('bg-teal-500');
+            reflectYBtn.classList.toggle('text-white');
+            reflectYBtn.classList.toggle('bg-slate-700');
+            reflectYBtn.classList.toggle('text-slate-200');
+            updateFormulas();
+            draw();
+        });
+
+        // Event listener for the reset button
+        resetBtn.addEventListener('click', resetTransformations);
+
+        // Initial draw and formula update when the page loads
+        window.onload = () => {
+            draw();
+            updateFormulas();
+            createAxisLabels(); // Create the external labels
+        };
     </script>
+
 </body>
 </html>
+
