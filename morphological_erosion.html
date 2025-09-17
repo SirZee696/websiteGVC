@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morphological Erosion – Interactive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .canvas-container { position: relative; display: inline-block; }
+    </style>
+    <meta name="description" content="Interactive visualization of morphological erosion with adjustable structuring elements, size, and iterations.">
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white min-h-screen">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+        
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-200 to-gray-400 bg-clip-text text-transparent">
+                Morphological Erosion
+            </h1>
+            <p class="mt-4 text-lg text-slate-300 max-w-3xl mx-auto">
+                Erosion shrinks bright structures by replacing each pixel with the minimum value under a structuring element.
+                It is used to remove small noise, disconnect thin bridges, and thin shapes.
+            </p>
+        </header>
+
+        <!-- Educational Section -->
+        <section class="mb-8 bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div>
+                    <h2 class="text-2xl font-semibold text-sky-300 mb-4">How It Works</h2>
+                    <div class="space-y-4 text-slate-300">
+                        <p>
+                            For grayscale images, erosion with structuring element \(S\) computes
+                            \[\mathrm{Result}(x,y) = \min\limits_{(i,j) \in S}\, \mathrm{Image}(x+i, y+j).\]
+                            For binary images, a pixel remains white only if the structuring element
+                            fits entirely within the foreground.
+                        </p>
+                        <div class="bg-slate-900/70 p-4 rounded-lg border border-slate-600">
+                            <h3 class="text-lg font-medium text-slate-200 mb-2">Parameters</h3>
+                            <ul class="list-disc list-inside space-y-1 text-slate-300">
+                                <li><span class="font-semibold">Structuring Element</span>: shape (square, cross, disk)</li>
+                                <li><span class="font-semibold">Size</span>: controls radius/half-width</li>
+                                <li><span class="font-semibold">Iterations</span>: apply erosion repeatedly</li>
+                                <li><span class="font-semibold">Binarize</span>: threshold before erosion for binary morphology</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-semibold text-emerald-300 mb-4">Common Uses</h2>
+                    <div class="space-y-3 text-slate-300">
+                        <div class="flex items-start space-x-3">
+                            <div class="w-2 h-2 bg-emerald-300 rounded-full mt-2 flex-shrink-0"></div>
+                            <p><strong>Denoising:</strong> Remove isolated bright speckles.</p>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <div class="w-2 h-2 bg-blue-300 rounded-full mt-2 flex-shrink-0"></div>
+                            <p><strong>Separation:</strong> Break thin connections between nearby objects.</p>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <div class="w-2 h-2 bg-purple-300 rounded-full mt-2 flex-shrink-0"></div>
+                            <p><strong>Skeletonization step:</strong> Used within pipelines that thin shapes.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Controls + Canvases -->
+        <section class="mb-8">
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <!-- Controls -->
+                <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700">
+                    <h3 class="text-xl font-semibold text-cyan-300 mb-4">Controls</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-2">Structuring Element</label>
+                            <select id="seShape" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white">
+                                <option value="square">Square</option>
+                                <option value="cross">Cross</option>
+                                <option value="disk">Disk</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-2">Size: <span id="sizeVal" class="font-mono">3</span></label>
+                            <input id="seSize" type="range" min="1" max="15" step="2" value="3" class="w-full accent-cyan-500 cursor-pointer">
+                            <p class="text-xs text-slate-400 mt-1">Odd values only (1,3,5,...)</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-2">Iterations: <span id="iterVal" class="font-mono">1</span></label>
+                            <input id="iterations" type="range" min="1" max="10" step="1" value="1" class="w-full accent-cyan-500 cursor-pointer">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-2">Binarize Threshold: <span id="thVal" class="font-mono">128</span></label>
+                            <input id="threshold" type="range" min="0" max="255" step="1" value="128" class="w-full accent-cyan-500 cursor-pointer">
+                            <div class="mt-2 flex items-center space-x-2">
+                                <input id="enableBinarize" type="checkbox" class="w-4 h-4 text-cyan-500">
+                                <label for="enableBinarize" class="text-sm text-slate-300">Enable Binarization</label>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 pt-2">
+                            <button id="applyBtn" class="px-3 py-2 bg-cyan-600 hover:bg-cyan-700 rounded text-sm font-semibold">Apply Erosion</button>
+                            <button id="resetBtn" class="px-3 py-2 bg-slate-600 hover:bg-slate-700 rounded text-sm font-semibold">Reset</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input Canvas -->
+                <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 flex flex-col items-center">
+                    <div class="flex items-center justify-between mb-4 w-full">
+                        <h3 class="text-xl font-semibold text-red-400">Input Image</h3>
+                        <div class="flex space-x-2">
+                            <button id="clearInput" class="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-sm transition-colors">Clear</button>
+                            <button id="randomInput" class="px-3 py-1 bg-purple-600 hover:bg-purple-700 rounded text-sm transition-colors">Random</button>
+                        </div>
+                    </div>
+                    <div class="canvas-container">
+                        <canvas id="inputCanvas" width="200" height="200" class="border-2 border-slate-600 rounded-lg cursor-crosshair"></canvas>
+                    </div>
+                    <div class="mt-4 text-center">
+                        <p class="text-sm text-slate-400">Click and drag to draw (white on black)</p>
+                    </div>
+                </div>
+
+                <!-- Result Canvas -->
+                <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 flex flex-col items-center">
+                    <div class="flex items-center justify-between mb-4 w-full">
+                        <h3 class="text-xl font-semibold text-cyan-400">Eroded Result</h3>
+                        <div class="flex space-x-2">
+                            <button id="presetGrid" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 rounded text-sm transition-colors">Preset: Grid</button>
+                            <button id="presetShapes" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 rounded text-sm transition-colors">Preset: Shapes</button>
+                        </div>
+                    </div>
+                    <div class="canvas-container">
+                        <canvas id="resultCanvas" width="200" height="200" class="border-2 border-cyan-500 rounded-lg"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Back Button -->
+        <div class="text-center">
+            <button onclick="history.back()" class="bg-slate-700 hover:bg-slate-800 text-white font-bold py-3 px-8 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                ← Back to Gallery
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // Canvas refs
+        const inputCanvas = document.getElementById('inputCanvas');
+        const resultCanvas = document.getElementById('resultCanvas');
+        const ctxIn = inputCanvas.getContext('2d');
+        const ctxOut = resultCanvas.getContext('2d');
+
+        // Controls
+        const seShape = document.getElementById('seShape');
+        const seSize = document.getElementById('seSize');
+        const sizeVal = document.getElementById('sizeVal');
+        const iterations = document.getElementById('iterations');
+        const iterVal = document.getElementById('iterVal');
+        const threshold = document.getElementById('threshold');
+        const thVal = document.getElementById('thVal');
+        const enableBinarize = document.getElementById('enableBinarize');
+        const applyBtn = document.getElementById('applyBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const clearInput = document.getElementById('clearInput');
+        const randomInput = document.getElementById('randomInput');
+        const presetGrid = document.getElementById('presetGrid');
+        const presetShapes = document.getElementById('presetShapes');
+
+        // Draw state
+        let isDrawing = false;
+        const brushSize = 10;
+
+        function initCanvas(canvas, ctx) {
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = brushSize;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+        }
+
+        function getPos(e, canvas) {
+            const rect = canvas.getBoundingClientRect();
+            return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        }
+
+        inputCanvas.addEventListener('mousedown', (e) => {
+            const p = getPos(e, inputCanvas);
+            ctxIn.beginPath();
+            ctxIn.moveTo(p.x, p.y);
+            isDrawing = true;
+        });
+        inputCanvas.addEventListener('mousemove', (e) => {
+            if (!isDrawing) return;
+            const p = getPos(e, inputCanvas);
+            ctxIn.lineTo(p.x, p.y);
+            ctxIn.stroke();
+        });
+        inputCanvas.addEventListener('mouseup', () => { isDrawing = false; });
+        inputCanvas.addEventListener('mouseout', () => { isDrawing = false; });
+
+        clearInput.addEventListener('click', () => { initCanvas(inputCanvas, ctxIn); drawResult(); });
+        randomInput.addEventListener('click', () => { randomizeInput(); drawResult(); });
+        presetGrid.addEventListener('click', () => { presetGridPattern(); drawResult(); });
+        presetShapes.addEventListener('click', () => { presetShapesPattern(); drawResult(); });
+
+        seSize.addEventListener('input', () => { sizeVal.textContent = seSize.value; });
+        iterations.addEventListener('input', () => { iterVal.textContent = iterations.value; });
+        threshold.addEventListener('input', () => { thVal.textContent = threshold.value; });
+
+        applyBtn.addEventListener('click', drawResult);
+        resetBtn.addEventListener('click', () => {
+            seShape.value = 'square';
+            seSize.value = 3; sizeVal.textContent = '3';
+            iterations.value = 1; iterVal.textContent = '1';
+            threshold.value = 128; thVal.textContent = '128';
+            enableBinarize.checked = false;
+            drawResult();
+        });
+
+        function randomizeInput() {
+            const img = ctxIn.createImageData(inputCanvas.width, inputCanvas.height);
+            const d = img.data;
+            for (let i = 0; i < d.length; i += 4) {
+                const v = Math.random() < 0.1 ? 255 : 0; // sparse white noise
+                d[i] = v; d[i+1] = v; d[i+2] = v; d[i+3] = 255;
+            }
+            ctxIn.putImageData(img, 0, 0);
+        }
+
+        function presetGridPattern() {
+            const img = ctxIn.createImageData(inputCanvas.width, inputCanvas.height);
+            const d = img.data; const w = inputCanvas.width; const h = inputCanvas.height;
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    const idx = (y * w + x) * 4;
+                    const v = (x % 20 === 0 || y % 20 === 0) ? 255 : 0;
+                    d[idx] = v; d[idx+1] = v; d[idx+2] = v; d[idx+3] = 255;
+                }
+            }
+            ctxIn.putImageData(img, 0, 0);
+        }
+
+        function presetShapesPattern() {
+            initCanvas(inputCanvas, ctxIn);
+            ctxIn.fillStyle = '#ffffff';
+            // rectangle
+            ctxIn.fillRect(40, 60, 120, 80);
+            // circle
+            ctxIn.beginPath(); ctxIn.arc(60, 60, 20, 0, Math.PI * 2); ctxIn.fill();
+            // diamond (rotated square)
+            ctxIn.beginPath(); ctxIn.moveTo(140, 50); ctxIn.lineTo(160, 70); ctxIn.lineTo(140, 90); ctxIn.lineTo(120, 70); ctxIn.closePath(); ctxIn.fill();
+        }
+
+        function buildKernel(shape, size) {
+            // size is odd: e.g., 3,5,7
+            const r = Math.floor(size / 2);
+            const ker = [];
+            for (let j = -r; j <= r; j++) {
+                for (let i = -r; i <= r; i++) {
+                    let keep = false;
+                    if (shape === 'square') keep = true;
+                    else if (shape === 'cross') keep = (i === 0 || j === 0);
+                    else if (shape === 'disk') keep = (i*i + j*j) <= r*r + 0.0001;
+                    if (keep) ker.push({dx: i, dy: j});
+                }
+            }
+            return ker;
+        }
+
+        function toGrayscale(imgData) {
+            const d = imgData.data;
+            for (let i = 0; i < d.length; i += 4) {
+                const v = Math.round(0.2126*d[i] + 0.7152*d[i+1] + 0.0722*d[i+2]);
+                d[i] = v; d[i+1] = v; d[i+2] = v; d[i+3] = 255;
+            }
+            return imgData;
+        }
+
+        function binarize(imgData, th) {
+            const d = imgData.data;
+            for (let i = 0; i < d.length; i += 4) {
+                const v = d[i] >= th ? 255 : 0;
+                d[i] = v; d[i+1] = v; d[i+2] = v; d[i+3] = 255;
+            }
+            return imgData;
+        }
+
+        function erodeOnce(src, kernel) {
+            const w = src.width, h = src.height;
+            const s = src.data;
+            const out = new ImageData(w, h);
+            const d = out.data;
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    let minV = 255;
+                    for (const k of kernel) {
+                        const xx = Math.min(w - 1, Math.max(0, x + k.dx));
+                        const yy = Math.min(h - 1, Math.max(0, y + k.dy));
+                        const idx = (yy * w + xx) * 4;
+                        if (s[idx] < minV) minV = s[idx];
+                    }
+                    const di = (y * w + x) * 4;
+                    d[di] = minV; d[di+1] = minV; d[di+2] = minV; d[di+3] = 255;
+                }
+            }
+            return out;
+        }
+
+        function applyErosion(img, kernel, iters) {
+            let cur = img;
+            for (let i = 0; i < iters; i++) {
+                cur = erodeOnce(cur, kernel);
+            }
+            return cur;
+        }
+
+        function drawResult() {
+            // Get input as grayscale (and optional binarize)
+            const src = ctxIn.getImageData(0, 0, inputCanvas.width, inputCanvas.height);
+            let gray = toGrayscale(new ImageData(new Uint8ClampedArray(src.data), src.width, src.height));
+            if (enableBinarize.checked) gray = binarize(gray, parseInt(threshold.value, 10));
+
+            const size = parseInt(seSize.value, 10);
+            const kernel = buildKernel(seShape.value, size);
+            const iters = parseInt(iterations.value, 10);
+
+            const eroded = applyErosion(gray, kernel, iters);
+            ctxOut.putImageData(eroded, 0, 0);
+        }
+
+        // Initialize
+        initCanvas(inputCanvas, ctxIn);
+        initCanvas(resultCanvas, ctxOut);
+        drawResult();
+    </script>
+
+</body>
+</html>
+
+

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Structuring Element – Interactive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .canvas-container { position: relative; display: inline-block; }
+    </style>
+    <meta name="description" content="Interactive explanation of structuring elements for morphological operations with shape and size controls, preview and one-step erosion demo.">
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white min-h-screen">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-300 to-cyan-300 bg-clip-text text-transparent">
+                Structuring Element
+            </h1>
+            <p class="mt-4 text-lg text-slate-300 max-w-3xl mx-auto">
+                A structuring element (SE) defines the neighborhood shape used by morphological operations
+                like erosion and dilation. Its <span class="font-semibold">shape</span> and <span class="font-semibold">size</span> control how
+                objects are grown or shrunk.
+            </p>
+        </header>
+
+        <!-- Educational Section -->
+        <section class="mb-8 bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div>
+                    <h2 class="text-2xl font-semibold text-sky-300 mb-3">What is an SE?</h2>
+                    <p class="text-slate-300">
+                        The SE is a small binary mask centered on each pixel. In erosion, a pixel remains bright only if
+                        all SE positions "fit" within the bright region. In dilation, a pixel becomes bright if any SE
+                        position overlaps with the bright region.
+                    </p>
+                    <ul class="list-disc list-inside mt-4 text-slate-300 space-y-1">
+                        <li><span class="font-semibold">Square</span>: uniform neighborhood in all directions.</li>
+                        <li><span class="font-semibold">Cross</span>: 4-connected emphasis, preserves thin lines.</li>
+                        <li><span class="font-semibold">Disk</span>: isotropic, circular neighborhood.</li>
+                    </ul>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-semibold text-emerald-300 mb-3">How size matters</h2>
+                    <p class="text-slate-300">
+                        Larger SEs amplify the effect: erosion removes thicker details; dilation fills larger gaps. SE size
+                        should match the scale of structures you want to keep or remove.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Controls and Previews -->
+        <section class="mb-8">
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <!-- Controls + Kernel Preview -->
+                <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700">
+                    <h3 class="text-xl font-semibold text-cyan-300 mb-4">Structuring Element</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-2">Shape</label>
+                            <select id="seShape" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white">
+                                <option value="square">Square</option>
+                                <option value="cross">Cross</option>
+                                <option value="disk">Disk</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-2">Size: <span id="sizeVal" class="font-mono">3</span></label>
+                            <input id="seSize" type="range" min="1" max="15" step="2" value="3" class="w-full accent-cyan-500 cursor-pointer">
+                            <p class="text-xs text-slate-400 mt-1">Odd values only (1,3,5,...)</p>
+                        </div>
+                        <div class="mt-4">
+                            <h4 class="text-sm font-semibold text-slate-200 mb-2">SE Preview</h4>
+                            <div class="canvas-container">
+                                <canvas id="kernelCanvas" width="220" height="220" class="border-2 border-slate-600 rounded-lg bg-slate-900"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Test Image -->
+                <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 flex flex-col items-center">
+                    <div class="flex items-center justify-between mb-4 w-full">
+                        <h3 class="text-xl font-semibold text-red-400">Test Image</h3>
+                        <div class="flex space-x-2">
+                            <button id="clearInput" class="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-sm transition-colors">Clear</button>
+                            <button id="presetShapes" class="px-3 py-1 bg-purple-600 hover:bg-purple-700 rounded text-sm transition-colors">Preset: Shapes</button>
+                        </div>
+                    </div>
+                    <div class="canvas-container">
+                        <canvas id="inputCanvas" width="200" height="200" class="border-2 border-slate-600 rounded-lg cursor-crosshair"></canvas>
+                    </div>
+                    <p class="mt-3 text-sm text-slate-400">Draw in white on black</p>
+                </div>
+
+                <!-- One-step Erosion Preview -->
+                <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 flex flex-col items-center">
+                    <div class="flex items-center justify-between mb-4 w-full">
+                        <h3 class="text-xl font-semibold text-cyan-400">Erosion Preview (1 step)</h3>
+                        <button id="applyOnce" class="px-3 py-1 bg-cyan-600 hover:bg-cyan-700 rounded text-sm transition-colors">Apply</button>
+                    </div>
+                    <div class="canvas-container">
+                        <canvas id="resultCanvas" width="200" height="200" class="border-2 border-cyan-500 rounded-lg"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Back Button -->
+        <div class="text-center">
+            <button onclick="history.back()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                ← Back to Gallery
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // Kernel preview canvas
+        const kernelCanvas = document.getElementById('kernelCanvas');
+        const kctx = kernelCanvas.getContext('2d');
+
+        // Test and result canvases
+        const inputCanvas = document.getElementById('inputCanvas');
+        const resultCanvas = document.getElementById('resultCanvas');
+        const ctxIn = inputCanvas.getContext('2d');
+        const ctxOut = resultCanvas.getContext('2d');
+
+        // Controls
+        const seShape = document.getElementById('seShape');
+        const seSize = document.getElementById('seSize');
+        const sizeVal = document.getElementById('sizeVal');
+        const clearInput = document.getElementById('clearInput');
+        const presetShapes = document.getElementById('presetShapes');
+        const applyOnce = document.getElementById('applyOnce');
+
+        // Draw state
+        let isDrawing = false;
+        const brushSize = 10;
+
+        function initCanvas(canvas, ctx) {
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = brushSize;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+        }
+
+        function getPos(e, canvas) {
+            const rect = canvas.getBoundingClientRect();
+            return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        }
+
+        inputCanvas.addEventListener('mousedown', (e) => {
+            const p = getPos(e, inputCanvas);
+            ctxIn.beginPath();
+            ctxIn.moveTo(p.x, p.y);
+            isDrawing = true;
+        });
+        inputCanvas.addEventListener('mousemove', (e) => {
+            if (!isDrawing) return;
+            const p = getPos(e, inputCanvas);
+            ctxIn.lineTo(p.x, p.y);
+            ctxIn.stroke();
+        });
+        inputCanvas.addEventListener('mouseup', () => { isDrawing = false; });
+        inputCanvas.addEventListener('mouseout', () => { isDrawing = false; });
+
+        clearInput.addEventListener('click', () => { initCanvas(inputCanvas, ctxIn); copyInputToResult(); });
+        presetShapes.addEventListener('click', () => { presetShapesPattern(); copyInputToResult(); });
+
+        seSize.addEventListener('input', () => { sizeVal.textContent = seSize.value; renderKernel(); });
+        seShape.addEventListener('change', renderKernel);
+        applyOnce.addEventListener('click', () => { applyOneErosion(); });
+
+        function presetShapesPattern() {
+            initCanvas(inputCanvas, ctxIn);
+            ctxIn.fillStyle = '#ffffff';
+            // rectangle
+            ctxIn.fillRect(40, 60, 120, 80);
+            // circle
+            ctxIn.beginPath(); ctxIn.arc(60, 60, 22, 0, Math.PI * 2); ctxIn.fill();
+            // thin line
+            ctxIn.strokeStyle = '#ffffff'; ctxIn.lineWidth = 6;
+            ctxIn.beginPath(); ctxIn.moveTo(20, 180); ctxIn.lineTo(180, 160); ctxIn.stroke();
+            // reset stroke for drawing
+            ctxIn.strokeStyle = '#ffffff'; ctxIn.lineWidth = brushSize;
+        }
+
+        function buildKernel(shape, size) {
+            const r = Math.floor(size / 2);
+            const ker = [];
+            for (let j = -r; j <= r; j++) {
+                for (let i = -r; i <= r; i++) {
+                    let keep = false;
+                    if (shape === 'square') keep = true;
+                    else if (shape === 'cross') keep = (i === 0 || j === 0);
+                    else if (shape === 'disk') keep = (i*i + j*j) <= r*r + 0.0001;
+                    if (keep) ker.push({dx: i, dy: j});
+                }
+            }
+            return { r, ker };
+        }
+
+        function renderKernel() {
+            const size = parseInt(seSize.value, 10);
+            const { r } = buildKernel(seShape.value, size);
+            const cells = (r * 2) + 1;
+            const pad = 10;
+            const cellSize = Math.floor((kernelCanvas.width - pad * 2) / cells);
+            // clear
+            kctx.fillStyle = '#0f172a';
+            kctx.fillRect(0, 0, kernelCanvas.width, kernelCanvas.height);
+
+            // grid and fill
+            for (let y = -r; y <= r; y++) {
+                for (let x = -r; x <= r; x++) {
+                    const cx = pad + (x + r) * cellSize;
+                    const cy = pad + (y + r) * cellSize;
+                    // cell bg
+                    kctx.fillStyle = '#1f2937';
+                    kctx.fillRect(cx, cy, cellSize - 2, cellSize - 2);
+                    // decide if in SE
+                    let inSE = false;
+                    if (seShape.value === 'square') inSE = true;
+                    else if (seShape.value === 'cross') inSE = (x === 0 || y === 0);
+                    else if (seShape.value === 'disk') inSE = (x*x + y*y) <= r*r + 0.0001;
+                    if (inSE) {
+                        kctx.fillStyle = '#22d3ee';
+                        kctx.fillRect(cx + 3, cy + 3, cellSize - 8, cellSize - 8);
+                    }
+                }
+            }
+            // center mark
+            kctx.strokeStyle = '#eab308';
+            kctx.lineWidth = 2;
+            const ccx = pad + r * cellSize;
+            const ccy = pad + r * cellSize;
+            kctx.strokeRect(ccx + 1, ccy + 1, cellSize - 4, cellSize - 4);
+        }
+
+        function toGrayscale(imgData) {
+            const d = imgData.data;
+            for (let i = 0; i < d.length; i += 4) {
+                const v = Math.round(0.2126*d[i] + 0.7152*d[i+1] + 0.0722*d[i+2]);
+                d[i] = v; d[i+1] = v; d[i+2] = v; d[i+3] = 255;
+            }
+            return imgData;
+        }
+
+        function erodeOnce(src, kernelArr) {
+            const w = src.width, h = src.height;
+            const s = src.data;
+            const out = new ImageData(w, h);
+            const d = out.data;
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    let minV = 255;
+                    for (const k of kernelArr) {
+                        const xx = Math.min(w - 1, Math.max(0, x + k.dx));
+                        const yy = Math.min(h - 1, Math.max(0, y + k.dy));
+                        const idx = (yy * w + xx) * 4;
+                        if (s[idx] < minV) minV = s[idx];
+                    }
+                    const di = (y * w + x) * 4;
+                    d[di] = minV; d[di+1] = minV; d[di+2] = minV; d[di+3] = 255;
+                }
+            }
+            return out;
+        }
+
+        function copyInputToResult() {
+            const src = ctxIn.getImageData(0, 0, inputCanvas.width, inputCanvas.height);
+            const gray = toGrayscale(new ImageData(new Uint8ClampedArray(src.data), src.width, src.height));
+            ctxOut.putImageData(gray, 0, 0);
+        }
+
+        function applyOneErosion() {
+            const src = ctxIn.getImageData(0, 0, inputCanvas.width, inputCanvas.height);
+            const gray = toGrayscale(new ImageData(new Uint8ClampedArray(src.data), src.width, src.height));
+            const size = parseInt(seSize.value, 10);
+            const { ker } = buildKernel(seShape.value, size);
+            const eroded = erodeOnce(gray, ker);
+            ctxOut.putImageData(eroded, 0, 0);
+        }
+
+        // Initialize
+        initCanvas(inputCanvas, ctxIn);
+        initCanvas(resultCanvas, ctxOut);
+        presetShapesPattern();
+        copyInputToResult();
+        renderKernel();
+    </script>
+
+</body>
+</html>
+
+
