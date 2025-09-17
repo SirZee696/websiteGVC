@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Image Arithmetic Subtraction</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .canvas-container {
+            position: relative;
+            display: inline-block;
+        }
+    </style>
+    <meta name="description" content="Interactive simulation of image arithmetic subtraction. Draw on two images and see pixel-wise subtraction with presets and explanations.">
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white min-h-screen">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+        
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-rose-400 to-purple-400 bg-clip-text text-transparent">
+                Image Arithmetic Subtraction
+            </h1>
+            <p class="mt-4 text-lg text-slate-300 max-w-3xl mx-auto">
+                Explore how images are combined using pixel-by-pixel subtraction. Subtracting pixel values can reveal differences between images, enhance edges, and support background removal.
+            </p>
+        </header>
+
+        <!-- Educational Section -->
+        <section class="mb-8 bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div>
+                    <h2 class="text-2xl font-semibold text-rose-400 mb-4">How Image Subtraction Works</h2>
+                    <div class="space-y-4 text-slate-300">
+                        <p>
+                            Image arithmetic subtraction combines two images by subtracting corresponding pixel values.
+                            Each pixel in the result is computed as the value of Image A minus Image B at the same coordinate.
+                        </p>
+                        <div class="bg-slate-900/70 p-4 rounded-lg border border-slate-600">
+                            <h3 class="text-lg font-medium text-slate-200 mb-2">The Formula</h3>
+                            <div class="text-center">
+                                <p class="text-xl font-mono text-cyan-300">
+                                    Result(x,y) = ImageA(x,y) − ImageB(x,y)
+                                </p>
+                            </div>
+                            <div class="mt-3 text-sm text-slate-400 space-y-1">
+                                <p>• <span class="text-blue-300">x,y</span> are the pixel coordinates</p>
+                                <p>• Results are clamped to the 0–255 range</p>
+                                <p>• Applied independently to R, G, and B channels</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-semibold text-emerald-400 mb-4">Use Cases</h2>
+                    <div class="space-y-3 text-slate-300">
+                        <div class="flex items-start space-x-3">
+                            <div class="w-2 h-2 bg-emerald-400 rounded-full mt-2 flex-shrink-0"></div>
+                            <p><strong>Change Detection:</strong> Highlight differences between two frames.</p>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <div class="w-2 h-2 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
+                            <p><strong>Background Removal:</strong> Subtract a static background from a scene.</p>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <div class="w-2 h-2 bg-purple-400 rounded-full mt-2 flex-shrink-0"></div>
+                            <p><strong>Edge Emphasis:</strong> Enhance edges by attenuating uniform regions.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Canvas Section -->
+        <section class="mb-8">
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                
+                <!-- Image A -->
+                <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 flex flex-col items-center">
+                    <div class="flex items-center justify-between mb-4 w-full">
+                        <h3 class="text-xl font-semibold text-red-400">Image A</h3>
+                        <div class="flex space-x-2">
+                            <button id="clearA" class="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-sm transition-colors">Clear</button>
+                            <button id="randomA" class="px-3 py-1 bg-purple-600 hover:bg-purple-700 rounded text-sm transition-colors">Random</button>
+                        </div>
+                    </div>
+                    <div class="canvas-container">
+                        <canvas id="canvasA" width="200" height="200" class="border-2 border-slate-600 rounded-lg cursor-crosshair"></canvas>
+                    </div>
+                    <div class="mt-4 text-center">
+                        <p class="text-sm text-slate-400">Click and drag to draw</p>
+                    </div>
+                </div>
+
+                <!-- Image B -->
+                <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 flex flex-col items-center">
+                    <div class="flex items-center justify-between mb-4 w-full">
+                        <h3 class="text-xl font-semibold text-green-400">Image B</h3>
+                        <div class="flex space-x-2">
+                            <button id="clearB" class="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-sm transition-colors">Clear</button>
+                            <button id="randomB" class="px-3 py-1 bg-purple-600 hover:bg-purple-700 rounded text-sm transition-colors">Random</button>
+                        </div>
+                    </div>
+                    <div class="canvas-container">
+                        <canvas id="canvasB" width="200" height="200" class="border-2 border-slate-600 rounded-lg cursor-crosshair"></canvas>
+                    </div>
+                    <div class="mt-4 text-center">
+                        <p class="text-sm text-slate-400">Click and drag to draw</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Result Canvas -->
+        <section class="mb-8">
+            <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700">
+                <div class="text-center mb-6">
+                    <h3 class="text-2xl font-semibold text-cyan-400">Result: <span>A − B</span></h3>
+                    <p class="text-slate-400 mt-2">Pixel-wise subtraction with clamping to the 0–255 range</p>
+                </div>
+                <div class="flex justify-center">
+                    <div class="canvas-container">
+                        <canvas id="resultCanvas" width="200" height="200" class="border-2 border-cyan-500 rounded-lg"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Preset Examples -->
+        <section class="mb-8">
+            <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700">
+                <h3 class="text-2xl font-semibold text-purple-400 mb-6 text-center">Interactive Examples</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <button class="preset-btn p-4 bg-gradient-to-br from-red-600 to-red-800 rounded-lg hover:from-red-700 hover:to-red-900 transition-all transform hover:scale-105" data-preset="gradient">
+                        <h4 class="font-semibold mb-2">Gradient vs Gradient</h4>
+                        <p class="text-sm opacity-90">Horizontal minus vertical gradients</p>
+                    </button>
+                    <button class="preset-btn p-4 bg-gradient-to-br from-green-600 to-green-800 rounded-lg hover:from-green-700 hover:to-green-900 transition-all transform hover:scale-105" data-preset="circles">
+                        <h4 class="font-semibold mb-2">Circle Difference</h4>
+                        <p class="text-sm opacity-90">Offset circles to show subtraction</p>
+                    </button>
+                    <button class="preset-btn p-4 bg-gradient-to-br from-blue-600 to-blue-800 rounded-lg hover:from-blue-700 hover:to-blue-900 transition-all transform hover:scale-105" data-preset="noise">
+                        <h4 class="font-semibold mb-2">Noise Removal</h4>
+                        <p class="text-sm opacity-90">Base image minus noise</p>
+                    </button>
+                    <button class="preset-btn p-4 bg-gradient-to-br from-purple-600 to-purple-800 rounded-lg hover:from-purple-700 hover:to-purple-900 transition-all transform hover:scale-105" data-preset="patterns">
+                        <h4 class="font-semibold mb-2">Pattern Difference</h4>
+                        <p class="text-sm opacity-90">Checkerboard minus diagonal lines</p>
+                    </button>
+                    <button class="preset-btn p-4 bg-gradient-to-br from-amber-600 to-amber-800 rounded-lg hover:from-amber-700 hover:to-amber-900 transition-all transform hover:scale-105" data-preset="edges">
+                        <h4 class="font-semibold mb-2">Edge Enhancement</h4>
+                        <p class="text-sm opacity-90">A − blur(A) to highlight edges</p>
+                    </button>
+                    <button class="preset-btn p-4 bg-gradient-to-br from-rose-600 to-rose-800 rounded-lg hover:from-rose-700 hover:to-rose-900 transition-all transform hover:scale-105" data-preset="background">
+                        <h4 class="font-semibold mb-2">Background Removal</h4>
+                        <p class="text-sm opacity-90">(Foreground + Background) − Background</p>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Mathematical Insights -->
+        <section class="mb-8">
+            <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700">
+                <h3 class="text-2xl font-semibold text-yellow-400 mb-6">Mathematical Insights</h3>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div>
+                        <h4 class="text-lg font-semibold text-slate-200 mb-3">Properties of Subtraction</h4>
+                        <div class="space-y-3 text-slate-300">
+                            <div class="flex items-start space-x-3">
+                                <div class="w-2 h-2 bg-yellow-400 rounded-full mt-2 flex-shrink-0"></div>
+                                <p><strong>Non‑Commutative:</strong> A − B ≠ B − A (order matters)</p>
+                            </div>
+                            <div class="flex items-start space-x-3">
+                                <div class="w-2 h-2 bg-yellow-400 rounded-full mt-2 flex-shrink-0"></div>
+                                <p><strong>Non‑Associative:</strong> (A − B) − C ≠ A − (B − C)</p>
+                            </div>
+                            <div class="flex items-start space-x-3">
+                                <div class="w-2 h-2 bg-yellow-400 rounded-full mt-2 flex-shrink-0"></div>
+                                <p><strong>Identity:</strong> A − 0 = A (0 is the black image)</p>
+                            </div>
+                            <div class="flex items-start space-x-3">
+                                <div class="w-2 h-2 bg-yellow-400 rounded-full mt-2 flex-shrink-0"></div>
+                                <p><strong>Inverse:</strong> A − A = 0 (black image)</p>
+                            </div>
+                            <div class="flex items-start space-x-3">
+                                <div class="w-2 h-2 bg-yellow-400 rounded-full mt-2 flex-shrink-0"></div>
+                                <p><strong>Relation to Difference:</strong> |A − B| emphasizes magnitude without sign; useful for change maps.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-semibold text-slate-200 mb-3">Common Pitfalls</h4>
+                        <div class="space-y-3 text-slate-300">
+                            <div class="flex items-start space-x-3">
+                                <div class="w-2 h-2 bg-red-400 rounded-full mt-2 flex-shrink-0"></div>
+                                <p><strong>Underflow:</strong> Negative results are clamped to 0, losing sign information.</p>
+                            </div>
+                            <div class="flex items-start space-x-3">
+                                <div class="w-2 h-2 bg-red-400 rounded-full mt-2 flex-shrink-0"></div>
+                                <p><strong>Order Sensitivity:</strong> Swapping A and B flips the sign; choose consistently.</p>
+                            </div>
+                            <div class="flex items-start space-x-3">
+                                <div class="w-2 h-2 bg-red-400 rounded-full mt-2 flex-shrink-0"></div>
+                                <p><strong>Noise Amplification:</strong> Subtraction can amplify sensor noise and misalignments.</p>
+                            </div>
+                            <div class="flex items-start space-x-3">
+                                <div class="w-2 h-2 bg-red-400 rounded-full mt-2 flex-shrink-0"></div>
+                                <p><strong>Gamma/Color Space:</strong> Operate in linear space; sRGB subtraction can be misleading.</p>
+                            </div>
+                            <div class="flex items-start space-x-3">
+                                <div class="w-2 h-2 bg-red-400 rounded-full mt-2 flex-shrink-0"></div>
+                                <p><strong>Registration:</strong> Misaligned images produce false edges; align before subtracting.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Back Button -->
+        <div class="text-center">
+            <button onclick="history.back()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-3 px-8 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                ← Back to Gallery
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // Canvas references
+        const canvasA = document.getElementById('canvasA');
+        const canvasB = document.getElementById('canvasB');
+        const resultCanvas = document.getElementById('resultCanvas');
+        const ctxA = canvasA.getContext('2d');
+        const ctxB = canvasB.getContext('2d');
+        const ctxR = resultCanvas.getContext('2d');
+
+        // Drawing state
+        let isDrawingA = false;
+        let isDrawingB = false;
+        const brushSize = 10;
+
+        function initializeCanvas(canvas, ctx) {
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = brushSize;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+        }
+
+        function getPos(e, canvas) {
+            const rect = canvas.getBoundingClientRect();
+            return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        }
+
+        function startDraw(e, ctx, canvas, flagName) {
+            const pos = getPos(e, canvas);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+            window[flagName] = true;
+        }
+
+        function drawMove(e, ctx, canvas, flagName) {
+            if (!window[flagName]) return;
+            const pos = getPos(e, canvas);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+            updateResult();
+        }
+
+        function endDraw(flagName) {
+            window[flagName] = false;
+        }
+
+        // Events A
+        canvasA.addEventListener('mousedown', (e) => startDraw(e, ctxA, canvasA, 'isDrawingA'));
+        canvasA.addEventListener('mousemove', (e) => drawMove(e, ctxA, canvasA, 'isDrawingA'));
+        canvasA.addEventListener('mouseup', () => endDraw('isDrawingA'));
+        canvasA.addEventListener('mouseout', () => endDraw('isDrawingA'));
+
+        // Events B
+        canvasB.addEventListener('mousedown', (e) => startDraw(e, ctxB, canvasB, 'isDrawingB'));
+        canvasB.addEventListener('mousemove', (e) => drawMove(e, ctxB, canvasB, 'isDrawingB'));
+        canvasB.addEventListener('mouseup', () => endDraw('isDrawingB'));
+        canvasB.addEventListener('mouseout', () => endDraw('isDrawingB'));
+
+        // Controls
+        document.getElementById('clearA').addEventListener('click', () => { initializeCanvas(canvasA, ctxA); updateResult(); });
+        document.getElementById('clearB').addEventListener('click', () => { initializeCanvas(canvasB, ctxB); updateResult(); });
+
+        document.getElementById('randomA').addEventListener('click', () => { randomize(canvasA, ctxA); updateResult(); });
+        document.getElementById('randomB').addEventListener('click', () => { randomize(canvasB, ctxB); updateResult(); });
+
+        function randomize(canvas, ctx) {
+            const imageData = ctx.createImageData(canvas.width, canvas.height);
+            const data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                data[i] = Math.random() * 255;
+                data[i + 1] = Math.random() * 255;
+                data[i + 2] = Math.random() * 255;
+                data[i + 3] = 255;
+            }
+            ctx.putImageData(imageData, 0, 0);
+        }
+
+        // Subtraction
+        function subtractImages(imgA, imgB) {
+            const out = ctxR.createImageData(resultCanvas.width, resultCanvas.height);
+            const a = imgA.data;
+            const b = imgB.data;
+            const o = out.data;
+            for (let i = 0; i < a.length; i += 4) {
+                let r = a[i] - b[i];
+                let g = a[i + 1] - b[i + 1];
+                let bch = a[i + 2] - b[i + 2];
+                // clamp 0-255
+                r = Math.max(0, Math.min(255, r));
+                g = Math.max(0, Math.min(255, g));
+                bch = Math.max(0, Math.min(255, bch));
+                o[i] = r;
+                o[i + 1] = g;
+                o[i + 2] = bch;
+                o[i + 3] = 255;
+            }
+            return out;
+        }
+
+        function updateResult() {
+            const imgA = ctxA.getImageData(0, 0, canvasA.width, canvasA.height);
+            const imgB = ctxB.getImageData(0, 0, canvasB.width, canvasB.height);
+            const out = subtractImages(imgA, imgB);
+            ctxR.putImageData(out, 0, 0);
+        }
+
+        // Presets
+        function presetGradient() {
+            const ia = ctxA.createImageData(canvasA.width, canvasA.height);
+            const da = ia.data;
+            for (let y = 0; y < canvasA.height; y++) {
+                for (let x = 0; x < canvasA.width; x++) {
+                    const idx = (y * canvasA.width + x) * 4;
+                    const v = Math.floor((x / canvasA.width) * 255);
+                    da[idx] = v; da[idx + 1] = v; da[idx + 2] = v; da[idx + 3] = 255;
+                }
+            }
+            ctxA.putImageData(ia, 0, 0);
+
+            const ib = ctxB.createImageData(canvasB.width, canvasB.height);
+            const db = ib.data;
+            for (let y = 0; y < canvasB.height; y++) {
+                for (let x = 0; x < canvasB.width; x++) {
+                    const idx = (y * canvasB.width + x) * 4;
+                    const v = Math.floor((y / canvasB.height) * 255);
+                    db[idx] = v; db[idx + 1] = v; db[idx + 2] = v; db[idx + 3] = 255;
+                }
+            }
+            ctxB.putImageData(ib, 0, 0);
+        }
+
+        function presetCircles() {
+            initializeCanvas(canvasA, ctxA);
+            initializeCanvas(canvasB, ctxB);
+            ctxA.fillStyle = '#ff0000';
+            ctxA.beginPath(); ctxA.arc(90, 100, 60, 0, Math.PI * 2); ctxA.fill();
+            ctxB.fillStyle = '#0000ff';
+            ctxB.beginPath(); ctxB.arc(120, 100, 60, 0, Math.PI * 2); ctxB.fill();
+        }
+
+        function presetNoise() {
+            // base: smooth gradient
+            const ia = ctxA.createImageData(canvasA.width, canvasA.height);
+            const da = ia.data;
+            for (let y = 0; y < canvasA.height; y++) {
+                for (let x = 0; x < canvasA.width; x++) {
+                    const idx = (y * canvasA.width + x) * 4;
+                    const v = Math.floor(((x + y) / (canvasA.width + canvasA.height)) * 255);
+                    da[idx] = v; da[idx + 1] = v; da[idx + 2] = v; da[idx + 3] = 255;
+                }
+            }
+            ctxA.putImageData(ia, 0, 0);
+            // noise: random
+            randomize(canvasB, ctxB);
+        }
+
+        function presetPatterns() {
+            // Checkerboard in A
+            const ia = ctxA.createImageData(canvasA.width, canvasA.height);
+            const da = ia.data;
+            const s = 20;
+            for (let y = 0; y < canvasA.height; y++) {
+                for (let x = 0; x < canvasA.width; x++) {
+                    const idx = (y * canvasA.width + x) * 4;
+                    const isWhite = ((Math.floor(x / s) + Math.floor(y / s)) % 2) === 0;
+                    const v = isWhite ? 255 : 0;
+                    da[idx] = v; da[idx + 1] = v; da[idx + 2] = v; da[idx + 3] = 255;
+                }
+            }
+            ctxA.putImageData(ia, 0, 0);
+
+            // Diagonal lines in B
+            const ib = ctxB.createImageData(canvasB.width, canvasB.height);
+            const db = ib.data;
+            for (let y = 0; y < canvasB.height; y++) {
+                for (let x = 0; x < canvasB.width; x++) {
+                    const idx = (y * canvasB.width + x) * 4;
+                    const diag = (x + y) % 40;
+                    const v = diag < 20 ? 255 : 0;
+                    db[idx] = v; db[idx + 1] = 0; db[idx + 2] = 0; db[idx + 3] = 255;
+                }
+            }
+            ctxB.putImageData(ib, 0, 0);
+        }
+
+        // Simple box blur helper
+        function boxBlur(srcCtx, width, height, radius = 2) {
+            const src = srcCtx.getImageData(0, 0, width, height);
+            const dst = srcCtx.createImageData(width, height);
+            const s = src.data, d = dst.data;
+            const w = width, h = height, r = Math.max(1, radius);
+            // Horizontal pass
+            const tmp = new Uint32Array(w * h * 4);
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    let rs = 0, gs = 0, bs = 0, count = 0;
+                    for (let k = -r; k <= r; k++) {
+                        const xx = Math.min(w - 1, Math.max(0, x + k));
+                        const idx = (y * w + xx) * 4;
+                        rs += s[idx]; gs += s[idx + 1]; bs += s[idx + 2];
+                        count++;
+                    }
+                    const tIdx = (y * w + x) * 4;
+                    tmp[tIdx] = rs / count;
+                    tmp[tIdx + 1] = gs / count;
+                    tmp[tIdx + 2] = bs / count;
+                    tmp[tIdx + 3] = 255;
+                }
+            }
+            // Vertical pass
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    let rs = 0, gs = 0, bs = 0, count = 0;
+                    for (let k = -r; k <= r; k++) {
+                        const yy = Math.min(h - 1, Math.max(0, y + k));
+                        const idx = (yy * w + x) * 4;
+                        rs += tmp[idx]; gs += tmp[idx + 1]; bs += tmp[idx + 2];
+                        count++;
+                    }
+                    const di = (y * w + x) * 4;
+                    d[di] = Math.round(rs / count);
+                    d[di + 1] = Math.round(gs / count);
+                    d[di + 2] = Math.round(bs / count);
+                    d[di + 3] = 255;
+                }
+            }
+            return dst;
+        }
+
+        function presetEdges() {
+            // Create a structured image in A (rectangle + lines)
+            initializeCanvas(canvasA, ctxA);
+            ctxA.fillStyle = '#ffffff';
+            ctxA.fillRect(40, 60, 120, 80);
+            ctxA.strokeStyle = '#ff0000';
+            ctxA.lineWidth = 4;
+            ctxA.beginPath(); ctxA.moveTo(20, 20); ctxA.lineTo(180, 180); ctxA.stroke();
+
+            // B = blurred(A)
+            const blurred = boxBlur(ctxA, canvasA.width, canvasA.height, 4);
+            ctxB.putImageData(blurred, 0, 0);
+        }
+
+        function presetBackground() {
+            // Simulate foreground + background in A
+            // Background: gradient
+            const bg = ctxA.createImageData(canvasA.width, canvasA.height);
+            const bd = bg.data;
+            for (let y = 0; y < canvasA.height; y++) {
+                for (let x = 0; x < canvasA.width; x++) {
+                    const idx = (y * canvasA.width + x) * 4;
+                    const v = Math.floor((x / canvasA.width) * 180 + 30);
+                    bd[idx] = v; bd[idx + 1] = v; bd[idx + 2] = v; bd[idx + 3] = 255;
+                }
+            }
+            ctxA.putImageData(bg, 0, 0);
+            // Foreground: a colored circle over background
+            ctxA.globalCompositeOperation = 'lighter';
+            ctxA.fillStyle = 'rgba(50,200,255,1)';
+            ctxA.beginPath(); ctxA.arc(110, 100, 50, 0, Math.PI * 2); ctxA.fill();
+            ctxA.globalCompositeOperation = 'source-over';
+
+            // B = background alone
+            const bgOnly = ctxB.createImageData(canvasB.width, canvasB.height);
+            const bdo = bgOnly.data;
+            for (let y = 0; y < canvasB.height; y++) {
+                for (let x = 0; x < canvasB.width; x++) {
+                    const idx = (y * canvasB.width + x) * 4;
+                    const v = Math.floor((x / canvasB.width) * 180 + 30);
+                    bdo[idx] = v; bdo[idx + 1] = v; bdo[idx + 2] = v; bdo[idx + 3] = 255;
+                }
+            }
+            ctxB.putImageData(bgOnly, 0, 0);
+        }
+
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const p = btn.dataset.preset;
+                if (p === 'gradient') presetGradient();
+                if (p === 'circles') presetCircles();
+                if (p === 'noise') presetNoise();
+                if (p === 'patterns') presetPatterns();
+                if (p === 'edges') presetEdges();
+                if (p === 'background') presetBackground();
+                updateResult();
+            });
+        });
+
+        // Initialize
+        initializeCanvas(canvasA, ctxA);
+        initializeCanvas(canvasB, ctxB);
+        initializeCanvas(resultCanvas, ctxR);
+        updateResult();
+    </script>
+
+</body>
+</html>
+
+
