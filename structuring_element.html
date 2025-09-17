@@ -56,7 +56,7 @@
 
         <!-- Controls and Previews -->
         <section class="mb-8">
-            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
                 <!-- Controls + Kernel Preview -->
                 <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700">
                     <h3 class="text-xl font-semibold text-cyan-300 mb-4">Structuring Element</h3>
@@ -71,7 +71,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-slate-300 mb-2">Size: <span id="sizeVal" class="font-mono">3</span></label>
-                            <input id="seSize" type="range" min="1" max="15" step="2" value="3" class="w-full accent-cyan-500 cursor-pointer">
+                            <input id="seSize" type="range" min="1" max="5" step="2" value="3" class="w-full accent-cyan-500 cursor-pointer">
                             <p class="text-xs text-slate-400 mt-1">Odd values only (1,3,5,...)</p>
                         </div>
                         <div class="mt-4">
@@ -83,30 +83,16 @@
                     </div>
                 </div>
 
-                <!-- Test Image -->
-                <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 flex flex-col items-center">
-                    <div class="flex items-center justify-between mb-4 w-full">
-                        <h3 class="text-xl font-semibold text-red-400">Test Image</h3>
-                        <div class="flex space-x-2">
-                            <button id="clearInput" class="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-sm transition-colors">Clear</button>
-                            <button id="presetShapes" class="px-3 py-1 bg-purple-600 hover:bg-purple-700 rounded text-sm transition-colors">Preset: Shapes</button>
-                        </div>
-                    </div>
+                <!-- Interactive Demonstration Grid -->
+                <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 flex flex-col items-center xl:col-span-2">
+                    <h3 class="text-xl font-semibold text-cyan-400 mb-4">Interactive Demonstration</h3>
                     <div class="canvas-container">
-                        <canvas id="inputCanvas" width="200" height="200" class="border-2 border-slate-600 rounded-lg cursor-crosshair"></canvas>
+                        <canvas id="demoCanvas" width="330" height="330" class="border-2 border-slate-600 rounded-lg cursor-pointer"></canvas>
                     </div>
-                    <p class="mt-3 text-sm text-slate-400">Draw in white on black</p>
-                </div>
-
-                <!-- One-step Erosion Preview -->
-                <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 flex flex-col items-center">
-                    <div class="flex items-center justify-between mb-4 w-full">
-                        <h3 class="text-xl font-semibold text-cyan-400">Erosion Preview (1 step)</h3>
-                        <button id="applyOnce" class="px-3 py-1 bg-cyan-600 hover:bg-cyan-700 rounded text-sm transition-colors">Apply</button>
-                    </div>
-                    <div class="canvas-container">
-                        <canvas id="resultCanvas" width="200" height="200" class="border-2 border-cyan-500 rounded-lg"></canvas>
-                    </div>
+                    <p class="mt-3 text-sm text-slate-400 text-center">
+                        Hover to see the SE in action. Click to toggle pixels.
+                        <br>The center pixel is eroded (darkened) if the SE doesn't fit.
+                    </p>
                 </div>
             </div>
         </section>
@@ -125,73 +111,14 @@
         const kernelCanvas = document.getElementById('kernelCanvas');
         const kctx = kernelCanvas.getContext('2d');
 
-        // Test and result canvases
-        const inputCanvas = document.getElementById('inputCanvas');
-        const resultCanvas = document.getElementById('resultCanvas');
-        const ctxIn = inputCanvas.getContext('2d');
-        const ctxOut = resultCanvas.getContext('2d');
+        // Demo canvas
+        const demoCanvas = document.getElementById('demoCanvas');
+        const dctx = demoCanvas.getContext('2d');
 
         // Controls
         const seShape = document.getElementById('seShape');
         const seSize = document.getElementById('seSize');
         const sizeVal = document.getElementById('sizeVal');
-        const clearInput = document.getElementById('clearInput');
-        const presetShapes = document.getElementById('presetShapes');
-        const applyOnce = document.getElementById('applyOnce');
-
-        // Draw state
-        let isDrawing = false;
-        const brushSize = 10;
-
-        function initCanvas(canvas, ctx) {
-            ctx.fillStyle = '#000000';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = brushSize;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-        }
-
-        function getPos(e, canvas) {
-            const rect = canvas.getBoundingClientRect();
-            return { x: e.clientX - rect.left, y: e.clientY - rect.top };
-        }
-
-        inputCanvas.addEventListener('mousedown', (e) => {
-            const p = getPos(e, inputCanvas);
-            ctxIn.beginPath();
-            ctxIn.moveTo(p.x, p.y);
-            isDrawing = true;
-        });
-        inputCanvas.addEventListener('mousemove', (e) => {
-            if (!isDrawing) return;
-            const p = getPos(e, inputCanvas);
-            ctxIn.lineTo(p.x, p.y);
-            ctxIn.stroke();
-        });
-        inputCanvas.addEventListener('mouseup', () => { isDrawing = false; });
-        inputCanvas.addEventListener('mouseout', () => { isDrawing = false; });
-
-        clearInput.addEventListener('click', () => { initCanvas(inputCanvas, ctxIn); copyInputToResult(); });
-        presetShapes.addEventListener('click', () => { presetShapesPattern(); copyInputToResult(); });
-
-        seSize.addEventListener('input', () => { sizeVal.textContent = seSize.value; renderKernel(); });
-        seShape.addEventListener('change', renderKernel);
-        applyOnce.addEventListener('click', () => { applyOneErosion(); });
-
-        function presetShapesPattern() {
-            initCanvas(inputCanvas, ctxIn);
-            ctxIn.fillStyle = '#ffffff';
-            // rectangle
-            ctxIn.fillRect(40, 60, 120, 80);
-            // circle
-            ctxIn.beginPath(); ctxIn.arc(60, 60, 22, 0, Math.PI * 2); ctxIn.fill();
-            // thin line
-            ctxIn.strokeStyle = '#ffffff'; ctxIn.lineWidth = 6;
-            ctxIn.beginPath(); ctxIn.moveTo(20, 180); ctxIn.lineTo(180, 160); ctxIn.stroke();
-            // reset stroke for drawing
-            ctxIn.strokeStyle = '#ffffff'; ctxIn.lineWidth = brushSize;
-        }
 
         function buildKernel(shape, size) {
             const r = Math.floor(size / 2);
@@ -207,6 +134,121 @@
             }
             return { r, ker };
         }
+
+        // --- Demo Grid Logic ---
+        const GRID_SIZE = 15;
+        const CELL_SIZE = demoCanvas.width / GRID_SIZE;
+        let gridState = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0));
+        let hoverPos = null;
+
+        function initDemoGrid() {
+            // Create a default shape
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    // Make a thick 'L' shape
+                    if ((x >= 3 && x <= 5 && y >= 3 && y < 12) || (y >= 9 && y <= 11 && x >= 3 && x < 10)) {
+                        gridState[y][x] = 1;
+                    } else {
+                        gridState[y][x] = 0;
+                    }
+                }
+            }
+            drawDemoGrid();
+        }
+
+        function drawDemoGrid() {
+            dctx.fillStyle = '#0f172a'; // slate-900
+            dctx.fillRect(0, 0, demoCanvas.width, demoCanvas.height);
+
+            // Draw base grid cells
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    dctx.fillStyle = gridState[y][x] ? '#e2e8f0' : '#1e293b'; // slate-200 / slate-800
+                    dctx.fillRect(x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+                }
+            }
+
+            if (hoverPos) {
+                const size = parseInt(seSize.value, 10);
+                const { r, ker } = buildKernel(seShape.value, size);
+                const hx = hoverPos.x;
+                const hy = hoverPos.y;
+
+                let fits = true;
+
+                // Draw SE overlay and check for erosion
+                for (const k of ker) {
+                    const kx = hx + k.dx;
+                    const ky = hy + k.dy;
+
+                    if (kx >= 0 && kx < GRID_SIZE && ky >= 0 && ky < GRID_SIZE) {
+                        // Check if the SE fits
+                        if (gridState[ky][kx] === 0) {
+                            fits = false;
+                        }
+                        // Draw SE overlay
+                        dctx.fillStyle = 'rgba(34, 211, 238, 0.5)'; // cyan-400 with alpha
+                        dctx.fillRect(kx * CELL_SIZE, ky * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                    } else {
+                        // SE is off the grid, so it doesn't fit
+                        fits = false;
+                    }
+                }
+
+                // Draw SE origin
+                dctx.strokeStyle = '#eab308'; // amber-400
+                dctx.lineWidth = 2;
+                dctx.strokeRect(hx * CELL_SIZE + 1, hy * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+
+                // Show erosion result
+                const resultColor = (gridState[hy][hx] && fits) ? '#e2e8f0' : '#1e293b';
+                dctx.fillStyle = resultColor;
+                dctx.globalAlpha = 0.7;
+                dctx.fillRect(hx * CELL_SIZE + 1, hy * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+                dctx.globalAlpha = 1.0;
+
+                // Add a marker to show the result
+                dctx.strokeStyle = fits ? '#10b981' : '#f43f5e'; // emerald-500 or rose-600
+                dctx.lineWidth = 3;
+                dctx.strokeRect(hx * CELL_SIZE, hy * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+            }
+        }
+
+        demoCanvas.addEventListener('mousemove', (e) => {
+            const rect = demoCanvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            const gridX = Math.floor(mouseX / CELL_SIZE);
+            const gridY = Math.floor(mouseY / CELL_SIZE);
+
+            if (gridX >= 0 && gridX < GRID_SIZE && gridY >= 0 && gridY < GRID_SIZE) {
+                if (!hoverPos || hoverPos.x !== gridX || hoverPos.y !== gridY) {
+                    hoverPos = { x: gridX, y: gridY };
+                    drawDemoGrid();
+                }
+            } else {
+                hoverPos = null;
+                drawDemoGrid();
+            }
+        });
+
+        demoCanvas.addEventListener('mouseleave', () => {
+            hoverPos = null;
+            drawDemoGrid();
+        });
+
+        demoCanvas.addEventListener('click', (e) => {
+            const rect = demoCanvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            const gridX = Math.floor(mouseX / CELL_SIZE);
+            const gridY = Math.floor(mouseY / CELL_SIZE);
+
+            if (gridX >= 0 && gridX < GRID_SIZE && gridY >= 0 && gridY < GRID_SIZE) {
+                gridState[gridY][gridX] = 1 - gridState[gridY][gridX]; // Toggle 0 and 1
+                drawDemoGrid();
+            }
+        });
 
         function renderKernel() {
             const size = parseInt(seSize.value, 10);
@@ -245,60 +287,13 @@
             kctx.strokeRect(ccx + 1, ccy + 1, cellSize - 4, cellSize - 4);
         }
 
-        function toGrayscale(imgData) {
-            const d = imgData.data;
-            for (let i = 0; i < d.length; i += 4) {
-                const v = Math.round(0.2126*d[i] + 0.7152*d[i+1] + 0.0722*d[i+2]);
-                d[i] = v; d[i+1] = v; d[i+2] = v; d[i+3] = 255;
-            }
-            return imgData;
-        }
-
-        function erodeOnce(src, kernelArr) {
-            const w = src.width, h = src.height;
-            const s = src.data;
-            const out = new ImageData(w, h);
-            const d = out.data;
-            for (let y = 0; y < h; y++) {
-                for (let x = 0; x < w; x++) {
-                    let minV = 255;
-                    for (const k of kernelArr) {
-                        const xx = Math.min(w - 1, Math.max(0, x + k.dx));
-                        const yy = Math.min(h - 1, Math.max(0, y + k.dy));
-                        const idx = (yy * w + xx) * 4;
-                        if (s[idx] < minV) minV = s[idx];
-                    }
-                    const di = (y * w + x) * 4;
-                    d[di] = minV; d[di+1] = minV; d[di+2] = minV; d[di+3] = 255;
-                }
-            }
-            return out;
-        }
-
-        function copyInputToResult() {
-            const src = ctxIn.getImageData(0, 0, inputCanvas.width, inputCanvas.height);
-            const gray = toGrayscale(new ImageData(new Uint8ClampedArray(src.data), src.width, src.height));
-            ctxOut.putImageData(gray, 0, 0);
-        }
-
-        function applyOneErosion() {
-            const src = ctxIn.getImageData(0, 0, inputCanvas.width, inputCanvas.height);
-            const gray = toGrayscale(new ImageData(new Uint8ClampedArray(src.data), src.width, src.height));
-            const size = parseInt(seSize.value, 10);
-            const { ker } = buildKernel(seShape.value, size);
-            const eroded = erodeOnce(gray, ker);
-            ctxOut.putImageData(eroded, 0, 0);
-        }
+        seSize.addEventListener('input', () => { sizeVal.textContent = seSize.value; renderKernel(); drawDemoGrid(); });
+        seShape.addEventListener('change', () => { renderKernel(); drawDemoGrid(); });
 
         // Initialize
-        initCanvas(inputCanvas, ctxIn);
-        initCanvas(resultCanvas, ctxOut);
-        presetShapesPattern();
-        copyInputToResult();
+        initDemoGrid();
         renderKernel();
     </script>
 
 </body>
 </html>
-
-
