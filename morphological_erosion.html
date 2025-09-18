@@ -112,11 +112,22 @@
                             <button id="resetGrid" class="px-3 py-1 bg-slate-600 hover:bg-slate-700 rounded text-sm transition-colors">Reset Grid</button>
                         </div>
                     </div>
-                    <div class="canvas-container">
-                        <canvas id="demoCanvas" width="330" height="330" class="border-2 border-slate-600 rounded-lg cursor-pointer"></canvas>
+                    <div class="flex flex-col md:flex-row gap-6">
+                        <div class="flex flex-col items-center">
+                            <h4 class="text-lg font-semibold text-slate-300 mb-2">Input Grid</h4>
+                            <div class="canvas-container">
+                                <canvas id="demoCanvas" width="330" height="330" class="border-2 border-slate-600 rounded-lg cursor-pointer"></canvas>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <h4 class="text-lg font-semibold text-cyan-300 mb-2">Result Grid</h4>
+                            <div class="canvas-container">
+                                <canvas id="resultDemoCanvas" width="330" height="330" class="border-2 border-cyan-500 rounded-lg"></canvas>
+                            </div>
+                        </div>
                     </div>
                     <p class="mt-3 text-sm text-slate-400 text-center">
-                        Hover to see a single erosion step. Click to toggle pixels.
+                        Hover over the Input Grid to see a single erosion step. Click to toggle pixels.
                         <br>The center pixel is eroded (darkened) if the SE doesn't fit.
                     </p>
                 </div>
@@ -140,6 +151,8 @@
         // Demo canvas
         const demoCanvas = document.getElementById('demoCanvas');
         const dctx = demoCanvas.getContext('2d');
+        const resultDemoCanvas = document.getElementById('resultDemoCanvas');
+        const rdctx = resultDemoCanvas.getContext('2d');
 
         // Controls
         const seShape = document.getElementById('seShape');
@@ -186,6 +199,7 @@
             }
             originalGridState = JSON.parse(JSON.stringify(gridState)); // Deep copy
             drawDemoGrid();
+            drawResultGrid(gridState);
         }
 
         function erodeGridOnce(inputGrid) {
@@ -210,7 +224,22 @@
             return newGrid;
         }
 
-        function drawDemoGrid() {
+        function drawResultGrid(state) {
+            rdctx.fillStyle = '#0f172a'; // slate-900
+            rdctx.fillRect(0, 0, resultDemoCanvas.width, resultDemoCanvas.height);
+
+            // Draw base grid cells
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    rdctx.fillStyle = state[y][x] ? '#e2e8f0' : '#1e293b'; // slate-200 / slate-800
+                    rdctx.fillRect(x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+                }
+            }
+        }
+
+        function drawDemoGrid(gridForCheck) {
+            const checkGrid = gridForCheck || gridState;
+
             dctx.fillStyle = '#0f172a'; // slate-900
             dctx.fillRect(0, 0, demoCanvas.width, demoCanvas.height);
 
@@ -237,7 +266,7 @@
 
                     if (kx >= 0 && kx < GRID_SIZE && ky >= 0 && ky < GRID_SIZE) {
                         // Check if the SE fits
-                        if (gridState[ky][kx] === 0) {
+                        if (checkGrid[ky][kx] === 0) {
                             fits = false;
                         }
                         // Draw SE overlay
@@ -255,7 +284,7 @@
                 dctx.strokeRect(hx * CELL_SIZE + 1, hy * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
 
                 // Show erosion result
-                const resultColor = (gridState[hy][hx] && fits) ? '#e2e8f0' : '#1e293b';
+                const resultColor = (checkGrid[hy][hx] && fits) ? '#e2e8f0' : '#1e293b';
                 dctx.fillStyle = resultColor;
                 dctx.globalAlpha = 0.7;
                 dctx.fillRect(hx * CELL_SIZE + 1, hy * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
@@ -301,6 +330,7 @@
             if (gridX >= 0 && gridX < GRID_SIZE && gridY >= 0 && gridY < GRID_SIZE) {
                 gridState[gridY][gridX] = 1 - gridState[gridY][gridX]; // Toggle 0 and 1
                 originalGridState[gridY][gridX] = gridState[gridY][gridX]; // Update the original state too
+                drawResultGrid(gridState);
                 drawDemoGrid();
             }
         });
@@ -316,13 +346,16 @@
 
             for (let iter = 0; iter < iterations; iter++) {
                 const nextGrid = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0));
-                gridState = currentGrid; // Set gridState for hover visualization
+
+                // Before starting the animation, ensure the result grid shows the current state
+                drawResultGrid(currentGrid);
+                await new Promise(r => setTimeout(r, 100)); // Small pause to show the starting state
 
                 // Animate the traversal for one iteration
                 for (let y = 0; y < GRID_SIZE; y++) {
                     for (let x = 0; x < GRID_SIZE; x++) {
                         hoverPos = { x, y };
-                        drawDemoGrid(); // This will show the SE at the current (x,y)
+                        drawDemoGrid(currentGrid); // This will show the SE at the current (x,y)
 
                         // Perform the erosion check for the current pixel
                         const size = parseInt(seSize.value, 10);
@@ -336,15 +369,17 @@
                                 break;
                             }
                         }
-                        nextGrid[y][x] = (currentGrid[y][x] && fits) ? 1 : 0;
+                        const newPixelValue = (currentGrid[y][x] && fits) ? 1 : 0;
+                        nextGrid[y][x] = newPixelValue;
+
+                        // Update the result grid in real-time for the current pixel
+                        rdctx.fillStyle = newPixelValue ? '#e2e8f0' : '#1e293b'; // slate-200 / slate-800
+                        rdctx.fillRect(x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
 
                         await new Promise(r => setTimeout(r, 50)); // Increased delay for animation
                     }
                 }
                 currentGrid = nextGrid; // Update the grid state for the next iteration
-                gridState = currentGrid;
-                hoverPos = null;
-                drawDemoGrid(); // Show the final state of this iteration
 
                 if (iter < iterations - 1) {
                     await new Promise(r => setTimeout(r, 400)); // Pause between iterations
@@ -352,10 +387,14 @@
             }
             controlsToToggle.forEach(el => el.disabled = false);
             demoCanvas.style.cursor = 'pointer';
+            // Final cleanup draw
+            hoverPos = null;
+            drawDemoGrid(); // Redraw with original state and no hover
         });
 
         resetGrid.addEventListener('click', () => {
             gridState = JSON.parse(JSON.stringify(originalGridState));
+            drawResultGrid(gridState);
             drawDemoGrid();
         });
 
