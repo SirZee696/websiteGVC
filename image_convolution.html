@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Convolution – Interactive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .canvas-container { position: relative; display: inline-block; }
+        .kernel-input {
+            width: 60px;
+            text-align: center;
+            background-color: #1f2937; /* bg-slate-800 */
+            border: 1px solid #4b5563; /* border-slate-600 */
+            border-radius: 0.375rem; /* rounded-md */
+            color: #e2e8f0; /* slate-200 */
+        }
+    </style>
+    <meta name="description" content="Interactive visualization of Image Convolution with a customizable kernel for blurring, sharpening, and edge detection.">
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-sky-900 to-slate-900 text-white min-h-screen">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+        
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-sky-300 to-cyan-400 bg-clip-text text-transparent">
+                Image Convolution
+            </h1>
+            <p class="mt-4 text-lg text-slate-300 max-w-3xl mx-auto">
+                The fundamental operation behind many image processing filters like blurring, sharpening, and edge detection.
+            </p>
+        </header>
+
+        <!-- Educational Section -->
+        <section class="mb-8 bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div>
+                    <h2 class="text-2xl font-semibold text-sky-300 mb-4">How It Works</h2>
+                    <div class="space-y-4 text-slate-300">
+                        <p>
+                            Convolution slides a small matrix of numbers, called a <strong>kernel</strong>, over every pixel of an image. At each position, it calculates a weighted sum of the pixel's neighbors (as defined by the kernel) to produce a new value for that pixel.
+                        </p>
+                        <div class="bg-slate-900/70 p-4 rounded-lg border border-slate-600">
+                            <h3 class="text-lg font-medium text-slate-200 mb-2">The Formula</h3>
+                            <p class="text-center text-lg font-mono text-cyan-300">Result(x,y) = Σ<sub>i</sub> Σ<sub>j</sub> Kernel(i,j) × Image(x-i, y-j)</p>
+                            <ul class="list-disc list-inside space-y-1 text-slate-300 mt-2 text-sm">
+                                <li>The sum is over all elements of the kernel.</li>
+                                <li>The kernel is "flipped" before being applied.</li>
+                                <li>The result is often normalized to stay in a visible range.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-semibold text-emerald-300 mb-4">Common Kernels</h2>
+                    <div class="space-y-3 text-slate-300">
+                        <div class="flex items-start space-x-3">
+                            <div class="w-2 h-2 bg-emerald-300 rounded-full mt-2 flex-shrink-0"></div>
+                            <p><strong>Blurring:</strong> Averaging kernels (like a Box Blur) smooth out noise and detail.</p>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <div class="w-2 h-2 bg-blue-300 rounded-full mt-2 flex-shrink-0"></div>
+                            <p><strong>Sharpening:</strong> Kernels that emphasize the center pixel enhance edges and details.</p>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <div class="w-2 h-2 bg-purple-300 rounded-full mt-2 flex-shrink-0"></div>
+                            <p><strong>Edge Detection:</strong> Kernels like Sobel or Prewitt are designed to highlight areas of high contrast.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Controls and Previews -->
+        <section class="mb-8">
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                <!-- Controls + Kernel Preview -->
+                <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700">
+                    <h3 class="text-xl font-semibold text-cyan-300 mb-4">Convolution Kernel (3x3)</h3>
+                    <div class="space-y-4">
+                        <!-- Kernel Input Grid -->
+                        <div class="grid grid-cols-3 gap-2 justify-center">
+                            <input type="number" id="k00" class="kernel-input" value="0">
+                            <input type="number" id="k01" class="kernel-input" value="0">
+                            <input type="number" id="k02" class="kernel-input" value="0">
+                            <input type="number" id="k10" class="kernel-input" value="0">
+                            <input type="number" id="k11" class="kernel-input" value="1">
+                            <input type="number" id="k12" class="kernel-input" value="0">
+                            <input type="number" id="k20" class="kernel-input" value="0">
+                            <input type="number" id="k21" class="kernel-input" value="0">
+                            <input type="number" id="k22" class="kernel-input" value="0">
+                        </div>
+                        <!-- Kernel Presets -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-2">Presets</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button id="preset-identity" class="px-2 py-1 bg-slate-600 hover:bg-slate-700 rounded text-xs">Identity</button>
+                                <button id="preset-blur" class="px-2 py-1 bg-slate-600 hover:bg-slate-700 rounded text-xs">Box Blur</button>
+                                <button id="preset-sharpen" class="px-2 py-1 bg-slate-600 hover:bg-slate-700 rounded text-xs">Sharpen</button>
+                                <button id="preset-edge" class="px-2 py-1 bg-slate-600 hover:bg-slate-700 rounded text-xs">Edge Detect</button>
+                            </div>
+                        </div>
+                        <!-- Normalization -->
+                        <div class="flex items-center space-x-2 pt-2">
+                            <input type="checkbox" id="normalize-check" class="w-4 h-4 accent-cyan-500" checked>
+                            <label for="normalize-check" class="text-sm text-slate-300">Normalize Kernel</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Demonstration Grid -->
+                <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 flex flex-col items-center xl:col-span-2">
+                    <div class="flex items-center justify-between mb-4 w-full">
+                        <h3 class="text-xl font-semibold text-sky-400">Interactive Demonstration</h3>
+                        <div class="flex space-x-2">
+                            <button id="applyConvolution" class="px-3 py-1 bg-sky-600 hover:bg-sky-700 rounded text-sm transition-colors">Apply Convolution</button>
+                            <button id="resetGrid" class="px-3 py-1 bg-slate-600 hover:bg-slate-700 rounded text-sm transition-colors">Reset Grid</button>
+                        </div>
+                    </div>
+                    <div class="flex flex-col md:flex-row gap-6">
+                        <div class="flex flex-col items-center">
+                            <h4 class="text-lg font-semibold text-slate-300 mb-2">Input Grid</h4>
+                            <div class="canvas-container">
+                                <canvas id="demoCanvas" width="330" height="330" class="border-2 border-slate-600 rounded-lg cursor-pointer"></canvas>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <h4 id="resultGridTitle" class="text-lg font-semibold text-sky-300 mb-2">Result Grid</h4>
+                            <div class="canvas-container">
+                                <canvas id="resultDemoCanvas" width="330" height="330" class="border-2 border-sky-500 rounded-lg"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="mt-3 text-sm text-slate-400 text-center">
+                        Hover over the Input Grid to see the kernel calculation. Click to toggle pixels.
+                        <br>The result grid is grayscale, mapping output values to brightness.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Back Button -->
+        <div class="text-center">
+            <button onclick="history.back()" class="bg-slate-700 hover:bg-slate-800 text-white font-bold py-3 px-8 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                ← Back to Gallery
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // Canvas and Contexts
+        const demoCanvas = document.getElementById('demoCanvas');
+        const dctx = demoCanvas.getContext('2d');
+        const resultDemoCanvas = document.getElementById('resultDemoCanvas');
+        const rdctx = resultDemoCanvas.getContext('2d');
+
+        // Controls
+        const kernelInputs = Array.from({length: 9}, (_, i) => document.getElementById(`k${Math.floor(i/3)}${i%3}`));
+        const applyConvolution = document.getElementById('applyConvolution');
+        const resetGrid = document.getElementById('resetGrid');
+        const normalizeCheck = document.getElementById('normalize-check');
+
+        // Presets
+        document.getElementById('preset-identity').addEventListener('click', () => setKernel([0,0,0, 0,1,0, 0,0,0]));
+        document.getElementById('preset-blur').addEventListener('click', () => setKernel([1,1,1, 1,1,1, 1,1,1]));
+        document.getElementById('preset-sharpen').addEventListener('click', () => setKernel([0,-1,0, -1,5,-1, 0,-1,0]));
+        document.getElementById('preset-edge').addEventListener('click', () => setKernel([1,0,-1, 2,0,-2, 1,0,-1]));
+
+        function setKernel(values) {
+            kernelInputs.forEach((input, i) => input.value = values[i]);
+        }
+
+        function getKernel() {
+            const kernel = kernelInputs.map(input => parseFloat(input.value) || 0);
+            let sum = kernel.reduce((a, b) => a + b, 0);
+            if (normalizeCheck.checked && sum !== 0) {
+                return kernel.map(v => v / sum);
+            }
+            return kernel;
+        }
+
+        // --- Demo Grid Logic ---
+        const GRID_SIZE = 15;
+        const CELL_SIZE = demoCanvas.width / GRID_SIZE;
+        let gridState = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0));
+        let originalGridState = null;
+        let hoverPos = null;
+
+        function initDemoGrid() {
+            // Create a sharp edge shape
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    gridState[y][x] = (x < GRID_SIZE / 2) ? 1 : 0;
+                }
+            }
+            gridState[7][3] = 0; // Add a small detail
+            gridState[7][11] = 1;
+            originalGridState = JSON.parse(JSON.stringify(gridState));
+            drawDemoGrid();
+            drawResultGrid(gridState);
+        }
+
+        function drawResultGrid(state) {
+            rdctx.fillStyle = '#0f172a';
+            rdctx.fillRect(0, 0, resultDemoCanvas.width, resultDemoCanvas.height);
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    // Clamp and scale value to 0-255 for grayscale
+                    const value = Math.round(Math.max(0, Math.min(1, state[y][x])) * 255);
+                    rdctx.fillStyle = `rgb(${value}, ${value}, ${value})`;
+                    rdctx.fillRect(x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+                }
+            }
+        }
+
+        function drawDemoGrid(gridForCheck) {
+            const checkGrid = gridForCheck || gridState;
+            dctx.fillStyle = '#0f172a';
+            dctx.fillRect(0, 0, demoCanvas.width, demoCanvas.height);
+
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    dctx.fillStyle = gridState[y][x] ? '#e2e8f0' : '#1e293b';
+                    dctx.fillRect(x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+                }
+            }
+
+            if (hoverPos) {
+                const hx = hoverPos.x;
+                const hy = hoverPos.y;
+                const kernel = getKernel();
+                let sum = 0;
+
+                for (let j = -1; j <= 1; j++) {
+                    for (let i = -1; i <= 1; i++) {
+                        const kx = hx + i;
+                        const ky = hy + j;
+                        if (kx >= 0 && kx < GRID_SIZE && ky >= 0 && ky < GRID_SIZE) {
+                            const kernelIndex = (j + 1) * 3 + (i + 1);
+                            const weight = kernel[kernelIndex];
+                            sum += checkGrid[ky][kx] * weight;
+                            
+                            dctx.fillStyle = 'rgba(14, 165, 233, 0.5)'; // sky-500 with alpha
+                            dctx.fillRect(kx * CELL_SIZE, ky * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                        }
+                    }
+                }
+
+                dctx.strokeStyle = '#eab308';
+                dctx.lineWidth = 2;
+                dctx.strokeRect(hx * CELL_SIZE + 1, hy * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+
+                const resultValue = Math.round(Math.max(0, Math.min(1, sum)) * 255);
+                const resultColor = `rgb(${resultValue}, ${resultValue}, ${resultValue})`;
+
+                dctx.fillStyle = resultColor;
+                dctx.globalAlpha = 0.7;
+                dctx.fillRect(hx * CELL_SIZE + 1, hy * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+                dctx.globalAlpha = 1.0;
+
+                dctx.strokeStyle = '#10b981';
+                dctx.lineWidth = 3;
+                dctx.strokeRect(hx * CELL_SIZE, hy * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+            }
+        }
+
+        demoCanvas.addEventListener('mousemove', (e) => {
+            const rect = demoCanvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            const gridX = Math.floor(mouseX / CELL_SIZE);
+            const gridY = Math.floor(mouseY / CELL_SIZE);
+
+            if (gridX >= 0 && gridX < GRID_SIZE && gridY >= 0 && gridY < GRID_SIZE) {
+                if (!hoverPos || hoverPos.x !== gridX || hoverPos.y !== gridY) {
+                    hoverPos = { x: gridX, y: gridY };
+                    drawDemoGrid();
+                }
+            } else {
+                hoverPos = null;
+                drawDemoGrid();
+            }
+        });
+
+        demoCanvas.addEventListener('mouseleave', () => {
+            hoverPos = null;
+            drawDemoGrid();
+        });
+
+        demoCanvas.addEventListener('click', (e) => {
+            const rect = demoCanvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            const gridX = Math.floor(mouseX / CELL_SIZE);
+            const gridY = Math.floor(mouseY / CELL_SIZE);
+
+            if (gridX >= 0 && gridX < GRID_SIZE && gridY >= 0 && gridY < GRID_SIZE) {
+                gridState[gridY][gridX] = 1 - gridState[gridY][gridX];
+                originalGridState[gridY][gridX] = gridState[gridY][gridX];
+                drawResultGrid(gridState);
+                drawDemoGrid();
+            }
+        });
+
+        applyConvolution.addEventListener('click', async () => {
+            const controlsToToggle = [applyConvolution, resetGrid, ...kernelInputs, normalizeCheck];
+            controlsToToggle.forEach(el => el.disabled = true);
+            demoCanvas.style.cursor = 'wait';
+
+            let currentGrid = JSON.parse(JSON.stringify(originalGridState));
+            const kernel = getKernel();
+
+            const nextGrid = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0));
+            drawResultGrid(currentGrid);
+            await new Promise(r => setTimeout(r, 100));
+
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    hoverPos = { x, y };
+                    drawDemoGrid(currentGrid);
+                    
+                    let sum = 0;
+                    for (let j = -1; j <= 1; j++) {
+                        for (let i = -1; i <= 1; i++) {
+                            const kx = x - i; // Kernel is flipped
+                            const ky = y - j;
+                            if (kx >= 0 && kx < GRID_SIZE && ky >= 0 && ky < GRID_SIZE) {
+                                const kernelIndex = (j + 1) * 3 + (i + 1);
+                                sum += currentGrid[ky][kx] * kernel[kernelIndex];
+                            }
+                        }
+                    }
+                    nextGrid[y][x] = sum;
+
+                    const resultValue = Math.round(Math.max(0, Math.min(1, sum)) * 255);
+                    rdctx.fillStyle = `rgb(${resultValue}, ${resultValue}, ${resultValue})`;
+                    rdctx.fillRect(x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+                    await new Promise(r => setTimeout(r, 5));
+                }
+            }
+            currentGrid = nextGrid;
+
+            controlsToToggle.forEach(el => el.disabled = false);
+            demoCanvas.style.cursor = 'pointer';
+            hoverPos = null;
+            gridState = currentGrid;
+            drawDemoGrid();
+        });
+
+        resetGrid.addEventListener('click', () => {
+            gridState = JSON.parse(JSON.stringify(originalGridState));
+            drawResultGrid(gridState);
+            drawDemoGrid();
+        });
+
+        // Initialize
+        initDemoGrid();
+    </script>
+
+</body>
+</html>
