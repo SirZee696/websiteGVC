@@ -104,6 +104,7 @@
                         <h3 class="text-xl font-semibold text-stone-400">Interactive Demonstration</h3>
                         <div class="flex space-x-2">
                             <button id="applyMedianFilter" class="px-3 py-1 bg-stone-600 hover:bg-stone-700 rounded text-sm transition-colors">Apply Median Filter</button>
+                            <button id="addNoise" class="px-3 py-1 bg-purple-600 hover:bg-purple-700 rounded text-sm transition-colors">Add Noise</button>
                             <button id="resetGrid" class="px-3 py-1 bg-slate-600 hover:bg-slate-700 rounded text-sm transition-colors">Reset Grid</button>
                         </div>
                     </div>
@@ -154,6 +155,7 @@
         const seIterations = document.getElementById('seIterations');
         const iterVal = document.getElementById('iterVal');
         const applyMedianFilter = document.getElementById('applyMedianFilter');
+        const addNoise = document.getElementById('addNoise');
         const resetGrid = document.getElementById('resetGrid');
         const resultGridTitle = document.getElementById('resultGridTitle');
 
@@ -297,6 +299,22 @@
             }
         });
 
+        addNoise.addEventListener('click', () => {
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    const rand = Math.random();
+                    if (rand < 0.1) { // 10% chance for salt
+                        gridState[y][x] = 1;
+                    } else if (rand > 0.9) { // 10% chance for pepper
+                        gridState[y][x] = 0;
+                    }
+                }
+            }
+            originalGridState = JSON.parse(JSON.stringify(gridState));
+            drawDemoGrid();
+            drawResultGrid(gridState);
+        });
+
         applyMedianFilter.addEventListener('click', async () => {
             const controlsToToggle = [applyMedianFilter, resetGrid, seShape, seSize, seIterations, demoCanvas];
             controlsToToggle.forEach(el => el.disabled = true);
@@ -333,7 +351,7 @@
                         const resultValue = Math.round(median * 255);
                         rdctx.fillStyle = `rgb(${resultValue}, ${resultValue}, ${resultValue})`;
                         rdctx.fillRect(x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
-                        await new Promise(r => setTimeout(r, 10));
+                        await new Promise(r => setTimeout(r, 50));
                     }
                 }
                 currentGrid = nextGrid;
@@ -346,8 +364,7 @@
             demoCanvas.style.cursor = 'pointer';
             hoverPos = null;
             resultGridTitle.textContent = 'Result Grid';
-            gridState = currentGrid; // Final state for hover
-            drawDemoGrid();
+            drawDemoGrid(currentGrid); // Show final hover state on the original grid
         });
 
         resetGrid.addEventListener('click', () => {

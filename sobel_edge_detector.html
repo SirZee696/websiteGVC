@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sobel Edge Detector – Interactive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .canvas-container { position: relative; display: inline-block; }
+        .kernel-box {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+            width: 120px;
+            height: 120px;
+            background-color: #1e293b;
+            padding: 8px;
+            border-radius: 8px;
+        }
+        .kernel-cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #334155;
+            border-radius: 4px;
+            font-weight: bold;
+            font-family: monospace;
+            font-size: 1.1rem;
+        }
+    </style>
+    <meta name="description" content="Interactive visualization of the Sobel edge detection operator.">
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-amber-900 to-slate-900 text-white min-h-screen">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+        
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-amber-300 to-yellow-400 bg-clip-text text-transparent">
+                Sobel Edge Detector
+            </h1>
+            <p class="mt-4 text-lg text-slate-300 max-w-3xl mx-auto">
+                A popular edge detector that uses 3x3 kernels to find horizontal and vertical edges, making it more robust to noise.
+            </p>
+        </header>
+
+        <!-- Educational Section -->
+        <section class="mb-8 bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div>
+                    <h2 class="text-2xl font-semibold text-sky-300 mb-4">How It Works</h2>
+                    <div class="space-y-4 text-slate-300">
+                        <p>
+                            The Sobel operator uses two 3x3 convolution kernels. The G<sub>x</sub> kernel responds to vertical edges, and the G<sub>y</sub> kernel responds to horizontal edges. By combining their results, we can find the magnitude and orientation of the edge at each pixel.
+                        </p>
+                        <div class="bg-slate-900/70 p-4 rounded-lg border border-slate-600">
+                            <h3 class="text-lg font-medium text-slate-200 mb-2">The Formula</h3>
+                            <p class="text-center text-lg font-mono text-cyan-300">Magnitude = √(G<sub>x</sub>² + G<sub>y</sub>²)</p>
+                            <ul class="list-disc list-inside space-y-1 text-slate-300 mt-2 text-sm">
+                                <li>G<sub>x</sub> and G<sub>y</sub> are the results of convolving the image with the two kernels.</li>
+                                <li>The larger 3x3 kernel provides some smoothing, making it less sensitive to noise than simpler operators.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-semibold text-emerald-300 mb-4">The Kernels</h2>
+                    <div class="flex gap-6">
+                        <div>
+                            <h4 class="font-semibold mb-2">G<sub>x</sub> (Vertical Edges)</h4>
+                            <div class="kernel-box">
+                                <div class="kernel-cell text-red-400">-1</div><div class="kernel-cell">0</div><div class="kernel-cell text-lime-300">+1</div>
+                                <div class="kernel-cell text-red-400">-2</div><div class="kernel-cell">0</div><div class="kernel-cell text-lime-300">+2</div>
+                                <div class="kernel-cell text-red-400">-1</div><div class="kernel-cell">0</div><div class="kernel-cell text-lime-300">+1</div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold mb-2">G<sub>y</sub> (Horizontal Edges)</h4>
+                            <div class="kernel-box">
+                                <div class="kernel-cell text-red-400">-1</div><div class="kernel-cell text-red-400">-2</div><div class="kernel-cell text-red-400">-1</div>
+                                <div class="kernel-cell">0</div><div class="kernel-cell">0</div><div class="kernel-cell">0</div>
+                                <div class="kernel-cell text-lime-300">+1</div><div class="kernel-cell text-lime-300">+2</div><div class="kernel-cell text-lime-300">+1</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Controls and Previews -->
+        <section class="mb-8">
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                <!-- Live Calculation -->
+                <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700">
+                    <h3 class="text-xl font-semibold text-cyan-300 mb-4">Live Calculation</h3>
+                    <p class="text-sm text-slate-400 mb-4">Hover over the input grid to see the calculation for the 3x3 area under the cursor.</p>
+                    <div class="space-y-3 font-mono text-lg">
+                        <p>G<sub>x</sub> = <span id="gx-val" class="font-bold text-yellow-300">?</span></p>
+                        <p>G<sub>y</sub> = <span id="gy-val" class="font-bold text-yellow-300">?</span></p>
+                        <p class="pt-2 border-t border-slate-600">Mag = √(<span id="gx-sq-val">?</span>² + <span id="gy-sq-val">?</span>²) = <span id="mag-val" class="font-bold text-amber-300">?</span></p>
+                    </div>
+                </div>
+
+                <!-- Interactive Demonstration Grid -->
+                <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 flex flex-col items-center xl:col-span-2">
+                    <div class="flex items-center justify-between mb-4 w-full">
+                        <h3 class="text-xl font-semibold text-amber-400">Interactive Demonstration</h3>
+                        <div class="flex space-x-2">
+                            <button id="applyDetector" class="px-3 py-1 bg-amber-600 hover:bg-amber-700 rounded text-sm transition-colors">Apply Detector</button>
+                            <button id="resetGrid" class="px-3 py-1 bg-slate-600 hover:bg-slate-700 rounded text-sm transition-colors">Reset Grid</button>
+                        </div>
+                    </div>
+                    <div class="flex flex-col md:flex-row gap-6">
+                        <div class="flex flex-col items-center">
+                            <h4 class="text-lg font-semibold text-slate-300 mb-2">Input Grid</h4>
+                            <div class="canvas-container">
+                                <canvas id="demoCanvas" width="330" height="330" class="border-2 border-slate-600 rounded-lg cursor-pointer"></canvas>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <h4 id="resultGridTitle" class="text-lg font-semibold text-amber-300 mb-2">Result Grid (Magnitude)</h4>
+                            <div class="canvas-container">
+                                <canvas id="resultDemoCanvas" width="330" height="330" class="border-2 border-amber-500 rounded-lg"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="mt-3 text-sm text-slate-400 text-center">
+                        Click to toggle pixels. The result shows the edge strength.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Back Button -->
+        <div class="text-center">
+            <button onclick="history.back()" class="bg-slate-700 hover:bg-slate-800 text-white font-bold py-3 px-8 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                ← Back to Gallery
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // Canvas and Contexts
+        const demoCanvas = document.getElementById('demoCanvas');
+        const dctx = demoCanvas.getContext('2d');
+        const resultDemoCanvas = document.getElementById('resultDemoCanvas');
+        const rdctx = resultDemoCanvas.getContext('2d');
+
+        // Controls
+        const applyDetector = document.getElementById('applyDetector');
+        const resetGrid = document.getElementById('resetGrid');
+        
+        // Live Calculation Display
+        const gxVal = document.getElementById('gx-val');
+        const gyVal = document.getElementById('gy-val');
+        const gxSqVal = document.getElementById('gx-sq-val');
+        const gySqVal = document.getElementById('gy-sq-val');
+        const magVal = document.getElementById('mag-val');
+
+        // --- Demo Grid Logic ---
+        const GRID_SIZE = 15;
+        const CELL_SIZE = demoCanvas.width / GRID_SIZE;
+        let gridState = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0));
+        let originalGridState = null;
+        let hoverPos = null;
+
+        function initDemoGrid() {
+            // Create a circle shape to show response to edges in all directions
+            const center = Math.floor(GRID_SIZE / 2);
+            const radius = 5;
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    const dist = Math.sqrt((x - center)**2 + (y - center)**2);
+                    if (dist <= radius) {
+                        gridState[y][x] = 1;
+                    } else {
+                        gridState[y][x] = 0;
+                    }
+                }
+            }
+            originalGridState = JSON.parse(JSON.stringify(gridState));
+            drawDemoGrid();
+            drawResultGrid(gridState);
+        }
+
+        function drawResultGrid(state) {
+            rdctx.fillStyle = '#0f172a';
+            rdctx.fillRect(0, 0, resultDemoCanvas.width, resultDemoCanvas.height);
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    const value = Math.round(state[y][x] * 255);
+                    rdctx.fillStyle = `rgb(${value}, ${value}, ${value})`;
+                    rdctx.fillRect(x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+                }
+            }
+        }
+
+        function getPixel(grid, x, y) {
+            if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) {
+                return 0; // Pad with 0 for pixels outside the grid
+            }
+            return grid[y][x];
+        }
+
+        function drawDemoGrid(gridForCheck) {
+            const checkGrid = gridForCheck || gridState;
+            dctx.fillStyle = '#0f172a';
+            dctx.fillRect(0, 0, demoCanvas.width, demoCanvas.height);
+
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    dctx.fillStyle = gridState[y][x] ? '#e2e8f0' : '#1e293b';
+                    dctx.fillRect(x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+                }
+            }
+
+            if (hoverPos) {
+                const hx = hoverPos.x;
+                const hy = hoverPos.y;
+
+                // Highlight the 3x3 kernel area
+                dctx.fillStyle = 'rgba(251, 146, 60, 0.4)'; // amber-500 with alpha
+                dctx.fillRect((hx - 1) * CELL_SIZE, (hy - 1) * CELL_SIZE, CELL_SIZE * 3, CELL_SIZE * 3);
+                
+                dctx.strokeStyle = '#eab308';
+                dctx.lineWidth = 2;
+                dctx.strokeRect(hx * CELL_SIZE + 1, hy * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+
+                // Update live calculation
+                const p = (i, j) => getPixel(checkGrid, hx + i - 1, hy + j - 1);
+                const gx = (p(2,0) + 2*p(2,1) + p(2,2)) - (p(0,0) + 2*p(0,1) + p(0,2));
+                const gy = (p(0,2) + 2*p(1,2) + p(2,2)) - (p(0,0) + 2*p(1,0) + p(2,0));
+                const mag = Math.sqrt(gx*gx + gy*gy);
+
+                gxVal.textContent = gx;
+                gyVal.textContent = gy;
+                gxSqVal.textContent = gx;
+                gySqVal.textContent = gy;
+                magVal.textContent = mag.toFixed(2);
+            }
+        }
+
+        demoCanvas.addEventListener('mousemove', (e) => {
+            const rect = demoCanvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            const gridX = Math.floor(mouseX / CELL_SIZE);
+            const gridY = Math.floor(mouseY / CELL_SIZE);
+
+            if (gridX >= 0 && gridX < GRID_SIZE && gridY >= 0 && gridY < GRID_SIZE) {
+                if (!hoverPos || hoverPos.x !== gridX || hoverPos.y !== gridY) {
+                    hoverPos = { x: gridX, y: gridY };
+                    drawDemoGrid();
+                }
+            } else {
+                hoverPos = null;
+                drawDemoGrid();
+            }
+        });
+
+        demoCanvas.addEventListener('mouseleave', () => {
+            hoverPos = null;
+            gxVal.textContent = '?';
+            gyVal.textContent = '?';
+            gxSqVal.textContent = '?';
+            gySqVal.textContent = '?';
+            magVal.textContent = '?';
+            drawDemoGrid();
+        });
+
+        demoCanvas.addEventListener('click', (e) => {
+            const rect = demoCanvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            const gridX = Math.floor(mouseX / CELL_SIZE);
+            const gridY = Math.floor(mouseY / CELL_SIZE);
+
+            if (gridX >= 0 && gridX < GRID_SIZE && gridY >= 0 && gridY < GRID_SIZE) {
+                gridState[gridY][gridX] = 1 - gridState[gridY][gridX];
+                originalGridState[gridY][gridX] = gridState[gridY][gridX];
+                drawResultGrid(gridState);
+                drawDemoGrid();
+            }
+        });
+
+        applyDetector.addEventListener('click', async () => {
+            const controlsToToggle = [applyDetector, resetGrid, demoCanvas];
+            controlsToToggle.forEach(el => el.disabled = true);
+            demoCanvas.style.cursor = 'wait';
+
+            let currentGrid = JSON.parse(JSON.stringify(originalGridState));
+            const nextGrid = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0));
+            
+            drawResultGrid(currentGrid);
+            await new Promise(r => setTimeout(r, 100));
+
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    hoverPos = { x, y };
+                    drawDemoGrid(currentGrid);
+
+                    const p = (i, j) => getPixel(currentGrid, x + i - 1, y + j - 1);
+                    const gx = (p(2,0) + 2*p(2,1) + p(2,2)) - (p(0,0) + 2*p(0,1) + p(0,2));
+                    const gy = (p(0,2) + 2*p(1,2) + p(2,2)) - (p(0,0) + 2*p(1,0) + p(2,0));
+                    const mag = Math.sqrt(gx*gx + gy*gy);
+                    
+                    // Normalize magnitude for display. Max possible Gx/Gy is 4. Max mag is sqrt(4^2+4^2) = sqrt(32)
+                    const normalizedMag = mag / Math.sqrt(32);
+                    nextGrid[y][x] = normalizedMag;
+
+                    const resultValue = Math.round(normalizedMag * 255);
+                    rdctx.fillStyle = `rgb(${resultValue}, ${resultValue}, ${resultValue})`;
+                    rdctx.fillRect(x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+                    await new Promise(r => setTimeout(r, 10));
+                }
+            }
+
+            controlsToToggle.forEach(el => el.disabled = false);
+            demoCanvas.style.cursor = 'pointer';
+            hoverPos = null;
+            drawDemoGrid(currentGrid);
+        });
+
+        resetGrid.addEventListener('click', () => {
+            gridState = JSON.parse(JSON.stringify(originalGridState));
+            drawResultGrid(gridState);
+            drawDemoGrid();
+        });
+
+        // Initialize
+        initDemoGrid();
+    </script>
+
+</body>
+</html>

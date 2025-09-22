@@ -3,26 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Morphological Closing – Interactive</title>
+    <title>Gaussian Smoothing – Interactive</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
         .canvas-container { position: relative; display: inline-block; }
     </style>
-    <meta name="description" content="Interactive visualization of morphological closing (dilation followed by erosion) with adjustable structuring elements.">
+    <meta name="description" content="Interactive visualization of Gaussian Smoothing for image blurring and noise reduction.">
 </head>
-<body class="bg-gradient-to-br from-slate-900 via-fuchsia-900 to-slate-900 text-white min-h-screen">
+<body class="bg-gradient-to-br from-slate-900 via-yellow-900 to-slate-900 text-white min-h-screen">
 
     <div class="container mx-auto p-4 md:p-8 max-w-7xl">
         
         <!-- Header -->
         <header class="text-center mb-8">
-            <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-fuchsia-300 to-purple-400 bg-clip-text text-transparent">
-                Morphological Closing
+            <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-yellow-300 to-amber-400 bg-clip-text text-transparent">
+                Gaussian Smoothing
             </h1>
             <p class="mt-4 text-lg text-slate-300 max-w-3xl mx-auto">
-                Closing smooths object contours and fills small holes by performing a dilation followed by an erosion.
+                A powerful blurring filter that uses a weighted average based on a Gaussian (bell curve) distribution.
             </p>
         </header>
 
@@ -33,14 +33,14 @@
                     <h2 class="text-2xl font-semibold text-sky-300 mb-4">How It Works</h2>
                     <div class="space-y-4 text-slate-300">
                         <p>
-                            Closing is a compound operation. First, a <strong>dilation</strong> is applied to the image, which expands bright regions and fills small gaps. Then, an <strong>erosion</strong> is applied to the result, which shrinks the regions back to near their original size, removing the small bridges created by dilation.
+                            Gaussian smoothing is a convolution-based filter. It applies a kernel where the weights are not uniform; instead, they follow a Gaussian distribution. This means the center pixel gets the highest weight, and weights decrease for neighboring pixels as their distance from the center increases.
                         </p>
                         <div class="bg-slate-900/70 p-4 rounded-lg border border-slate-600">
                             <h3 class="text-lg font-medium text-slate-200 mb-2">The Formula</h3>
-                            <p class="text-center text-xl font-mono text-cyan-300">Image ● S = (Image ⊕ S) ⊖ S</p>
-                            <ul class="list-disc list-inside space-y-1 text-slate-300 mt-2">
-                                <li>First, dilate the Image with Structuring Element S.</li>
-                                <li>Then, erode the result with the same S.</li>
+                            <p class="text-center text-lg font-mono text-cyan-300">G(x,y) = (1/(2πσ²)) * e<sup>-((x²+y²)/(2σ²))</sup></p>
+                            <ul class="list-disc list-inside space-y-1 text-slate-300 mt-2 text-sm">
+                                <li><strong>σ (Sigma)</strong> is the standard deviation, controlling the blur amount.</li>
+                                <li>The kernel is normalized so all weights sum to 1.</li>
                             </ul>
                         </div>
                     </div>
@@ -50,15 +50,15 @@
                     <div class="space-y-3 text-slate-300">
                         <div class="flex items-start space-x-3">
                             <div class="w-2 h-2 bg-emerald-300 rounded-full mt-2 flex-shrink-0"></div>
-                            <p><strong>Filling Holes:</strong> Effectively fills small holes and gaps inside objects (pepper noise).</p>
+                            <p><strong>Noise Reduction:</strong> Very effective at reducing Gaussian noise.</p>
                         </div>
                         <div class="flex items-start space-x-3">
                             <div class="w-2 h-2 bg-blue-300 rounded-full mt-2 flex-shrink-0"></div>
-                            <p><strong>Smoothing Contours:</strong> Smooths the outlines of objects, particularly fusing narrow breaks.</p>
+                            <p><strong>Edge Detection Preprocessing:</strong> A key step in algorithms like Canny edge detection to reduce noise before finding edges.</p>
                         </div>
                         <div class="flex items-start space-x-3">
                             <div class="w-2 h-2 bg-purple-300 rounded-full mt-2 flex-shrink-0"></div>
-                            <p><strong>Joining Components:</strong> Connects objects that are close together by forming bridges.</p>
+                            <p><strong>Natural Blurring:</strong> Creates a smooth, natural-looking blur often used in photography and computer graphics.</p>
                         </div>
                     </div>
                 </div>
@@ -70,27 +70,23 @@
             <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
                 <!-- Controls + Kernel Preview -->
                 <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700">
-                    <h3 class="text-xl font-semibold text-cyan-300 mb-4">Structuring Element</h3>
+                    <h3 class="text-xl font-semibold text-cyan-300 mb-4">Gaussian Kernel</h3>
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-slate-300 mb-2">Shape</label>
-                            <select id="seShape" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white">
-                                <option value="square">Square</option>
-                                <option value="cross">Cross</option>
-                                <option value="disk">Disk</option>
-                            </select>
+                            <label class="block text-sm font-medium text-slate-300 mb-2">Kernel Size: <span id="sizeVal" class="font-mono">3x3</span></label>
+                            <input id="kernelSize" type="range" min="3" max="7" step="2" value="3" class="w-full accent-cyan-500 cursor-pointer">
+                            <p class="text-xs text-slate-400 mt-1">Odd values only (3, 5, 7)</p>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-slate-300 mb-2">Size: <span id="sizeVal" class="font-mono">3</span></label>
-                            <input id="seSize" type="range" min="1" max="5" step="2" value="3" class="w-full accent-cyan-500 cursor-pointer">
-                            <p class="text-xs text-slate-400 mt-1">Odd values only (1,3,5,...)</p>
+                            <label class="block text-sm font-medium text-slate-300 mb-2">Sigma (σ): <span id="sigmaVal" class="font-mono">1.0</span></label>
+                            <input id="kernelSigma" type="range" min="0.5" max="3" step="0.1" value="1.0" class="w-full accent-cyan-500 cursor-pointer">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-slate-300 mb-2">Iterations: <span id="iterVal" class="font-mono">1</span></label>
                             <input id="seIterations" type="range" min="1" max="3" step="1" value="1" class="w-full accent-cyan-500 cursor-pointer">
                         </div>
                         <div class="mt-4">
-                            <h4 class="text-sm font-semibold text-slate-200 mb-2">SE Preview</h4>
+                            <h4 class="text-sm font-semibold text-slate-200 mb-2">Kernel Preview</h4>
                             <div class="canvas-container">
                                 <canvas id="kernelCanvas" width="220" height="220" class="border-2 border-slate-600 rounded-lg bg-slate-900"></canvas>
                             </div>
@@ -101,9 +97,10 @@
                 <!-- Interactive Demonstration Grid -->
                 <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 flex flex-col items-center xl:col-span-2">
                     <div class="flex items-center justify-between mb-4 w-full">
-                        <h3 class="text-xl font-semibold text-fuchsia-400">Interactive Demonstration</h3>
+                        <h3 class="text-xl font-semibold text-yellow-400">Interactive Demonstration</h3>
                         <div class="flex space-x-2">
-                            <button id="applyClosing" class="px-3 py-1 bg-fuchsia-600 hover:bg-fuchsia-700 rounded text-sm transition-colors">Apply Closing</button>
+                            <button id="applyFilter" class="px-3 py-1 bg-yellow-600 hover:bg-yellow-700 rounded text-sm transition-colors">Apply Filter</button>
+                            <button id="addNoise" class="px-3 py-1 bg-purple-600 hover:bg-purple-700 rounded text-sm transition-colors">Add Noise</button>
                             <button id="resetGrid" class="px-3 py-1 bg-slate-600 hover:bg-slate-700 rounded text-sm transition-colors">Reset Grid</button>
                         </div>
                     </div>
@@ -115,15 +112,15 @@
                             </div>
                         </div>
                         <div class="flex flex-col items-center">
-                            <h4 id="resultGridTitle" class="text-lg font-semibold text-fuchsia-300 mb-2">Result Grid</h4>
+                            <h4 id="resultGridTitle" class="text-lg font-semibold text-yellow-300 mb-2">Result Grid</h4>
                             <div class="canvas-container">
-                                <canvas id="resultDemoCanvas" width="330" height="330" class="border-2 border-fuchsia-500 rounded-lg"></canvas>
+                                <canvas id="resultDemoCanvas" width="330" height="330" class="border-2 border-yellow-500 rounded-lg"></canvas>
                             </div>
                         </div>
                     </div>
                     <p class="mt-3 text-sm text-slate-400 text-center">
-                        Hover over the Input Grid to see a single dilation step. Click to toggle pixels.
-                        <br>Closing first dilates the image, then erodes the result.
+                        Hover over the Input Grid to see the kernel and the resulting weighted average.
+                        <br>The result grid is grayscale to show the blurred values.
                     </p>
                 </div>
             </div>
@@ -148,28 +145,40 @@
         const rdctx = resultDemoCanvas.getContext('2d');
 
         // Controls
-        const seShape = document.getElementById('seShape');
-        const seSize = document.getElementById('seSize');
+        const kernelSize = document.getElementById('kernelSize');
         const sizeVal = document.getElementById('sizeVal');
+        const kernelSigma = document.getElementById('kernelSigma');
+        const sigmaVal = document.getElementById('sigmaVal');
         const seIterations = document.getElementById('seIterations');
         const iterVal = document.getElementById('iterVal');
-        const applyClosing = document.getElementById('applyClosing');
+        const applyFilter = document.getElementById('applyFilter');
+        const addNoise = document.getElementById('addNoise');
         const resetGrid = document.getElementById('resetGrid');
         const resultGridTitle = document.getElementById('resultGridTitle');
 
-        function buildKernel(shape, size) {
+        let currentKernel = [];
+
+        function generateGaussianKernel(size, sigma) {
+            const kernel = Array(size).fill(0).map(() => Array(size).fill(0));
             const r = Math.floor(size / 2);
-            const ker = [];
-            for (let j = -r; j <= r; j++) {
-                for (let i = -r; i <= r; i++) {
-                    let keep = false;
-                    if (shape === 'square') keep = true;
-                    else if (shape === 'cross') keep = (i === 0 || j === 0);
-                    else if (shape === 'disk') keep = (i*i + j*j) <= r*r + 0.0001;
-                    if (keep) ker.push({dx: i, dy: j});
+            let sum = 0;
+
+            for (let y = -r; y <= r; y++) {
+                for (let x = -r; x <= r; x++) {
+                    const exponent = -(x * x + y * y) / (2 * sigma * sigma);
+                    const value = (1 / (2 * Math.PI * sigma * sigma)) * Math.exp(exponent);
+                    kernel[y + r][x + r] = value;
+                    sum += value;
                 }
             }
-            return { r, ker };
+
+            // Normalize the kernel
+            for (let y = 0; y < size; y++) {
+                for (let x = 0; x < size; x++) {
+                    kernel[y][x] /= sum;
+                }
+            }
+            return kernel;
         }
 
         // --- Demo Grid Logic ---
@@ -180,21 +189,14 @@
         let hoverPos = null;
 
         function initDemoGrid() {
-            // Create a solid shape with some holes (pepper noise)
+            // Create a sharp edge shape
             for (let y = 0; y < GRID_SIZE; y++) {
                 for (let x = 0; x < GRID_SIZE; x++) {
-                    if (x >= 3 && x <= 11 && y >= 3 && y <= 11) {
-                        gridState[y][x] = 1;
-                    } else {
-                        gridState[y][x] = 0;
-                    }
+                    gridState[y][x] = (x < GRID_SIZE / 2) ? 1 : 0;
                 }
             }
-            // Add some "pepper" noise (holes)
-            gridState[5][5] = 0;
-            gridState[6][8] = 0;
-            gridState[9][6] = 0;
-            gridState[8][4] = 0;
+            gridState[7][3] = 0; // Add a small detail
+            gridState[7][11] = 1;
             originalGridState = JSON.parse(JSON.stringify(gridState));
             drawDemoGrid();
             drawResultGrid(gridState);
@@ -205,7 +207,8 @@
             rdctx.fillRect(0, 0, resultDemoCanvas.width, resultDemoCanvas.height);
             for (let y = 0; y < GRID_SIZE; y++) {
                 for (let x = 0; x < GRID_SIZE; x++) {
-                    rdctx.fillStyle = state[y][x] ? '#e2e8f0' : '#1e293b';
+                    const value = Math.round(state[y][x] * 255);
+                    rdctx.fillStyle = `rgb(${value}, ${value}, ${value})`;
                     rdctx.fillRect(x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
                 }
             }
@@ -224,19 +227,23 @@
             }
 
             if (hoverPos) {
-                const size = parseInt(seSize.value, 10);
-                const { ker } = buildKernel(seShape.value, size);
                 const hx = hoverPos.x;
                 const hy = hoverPos.y;
-                let hits = false;
+                const size = currentKernel.length;
+                const r = Math.floor(size / 2);
+                let weightedSum = 0;
 
-                for (const k of ker) {
-                    const kx = hx + k.dx;
-                    const ky = hy + k.dy;
-                    if (kx >= 0 && kx < GRID_SIZE && ky >= 0 && ky < GRID_SIZE) {
-                        if (checkGrid[ky][kx] === 1) hits = true;
-                        dctx.fillStyle = 'rgba(217, 70, 239, 0.5)'; // Fuchsia overlay
-                        dctx.fillRect(kx * CELL_SIZE, ky * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                for (let j = -r; j <= r; j++) {
+                    for (let i = -r; i <= r; i++) {
+                        const kx = hx + i;
+                        const ky = hy + j;
+                        if (kx >= 0 && kx < GRID_SIZE && ky >= 0 && ky < GRID_SIZE) {
+                            const weight = currentKernel[j + r][i + r];
+                            weightedSum += checkGrid[ky][kx] * weight;
+                            
+                            dctx.fillStyle = 'rgba(234, 179, 8, 0.5)'; // yellow-500 with alpha
+                            dctx.fillRect(kx * CELL_SIZE, ky * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                        }
                     }
                 }
 
@@ -244,13 +251,15 @@
                 dctx.lineWidth = 2;
                 dctx.strokeRect(hx * CELL_SIZE + 1, hy * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
 
-                const resultColor = hits ? '#e2e8f0' : '#1e293b';
+                const resultValue = Math.round(Math.max(0, Math.min(1, weightedSum)) * 255);
+                const resultColor = `rgb(${resultValue}, ${resultValue}, ${resultValue})`;
+
                 dctx.fillStyle = resultColor;
                 dctx.globalAlpha = 0.7;
                 dctx.fillRect(hx * CELL_SIZE + 1, hy * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
                 dctx.globalAlpha = 1.0;
 
-                dctx.strokeStyle = hits ? '#10b981' : '#f43f5e';
+                dctx.strokeStyle = '#10b981';
                 dctx.lineWidth = 3;
                 dctx.strokeRect(hx * CELL_SIZE, hy * CELL_SIZE, CELL_SIZE, CELL_SIZE);
             }
@@ -294,8 +303,21 @@
             }
         });
 
-        applyClosing.addEventListener('click', async () => {
-            const controlsToToggle = [applyClosing, resetGrid, seShape, seSize, seIterations, demoCanvas];
+        addNoise.addEventListener('click', () => {
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    const rand = Math.random();
+                    if (rand < 0.1) { gridState[y][x] = 1; } 
+                    else if (rand > 0.9) { gridState[y][x] = 0; }
+                }
+            }
+            originalGridState = JSON.parse(JSON.stringify(gridState));
+            drawDemoGrid();
+            drawResultGrid(gridState);
+        });
+
+        applyFilter.addEventListener('click', async () => {
+            const controlsToToggle = [applyFilter, resetGrid, kernelSize, kernelSigma, seIterations, demoCanvas, addNoise];
             controlsToToggle.forEach(el => el.disabled = true);
             demoCanvas.style.cursor = 'wait';
 
@@ -303,64 +325,39 @@
             let currentGrid = JSON.parse(JSON.stringify(originalGridState));
 
             for (let iter = 0; iter < iterations; iter++) {
-                // --- DILATION PASS ---
-                resultGridTitle.textContent = `Dilating... (Pass ${iter + 1})`;
-                const dilatedGrid = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0));
+                resultGridTitle.textContent = `Applying Filter... (Pass ${iter + 1})`;
+                const nextGrid = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0));
                 drawResultGrid(currentGrid);
                 await new Promise(r => setTimeout(r, 400));
 
-                for (let y = 0; y < GRID_SIZE; y++) {
-                    for (let x = 0; x < GRID_SIZE; x++) {
-                        hoverPos = { x, y };
-                        drawDemoGrid(currentGrid);
-                        const size = parseInt(seSize.value, 10);
-                        const { ker } = buildKernel(seShape.value, size);
-                        let hits = false;
-                        for (const k of ker) {
-                            const kx = x + k.dx;
-                            const ky = y + k.dy;
-                            if (kx >= 0 && kx < GRID_SIZE && ky >= 0 && ky < GRID_SIZE && currentGrid[ky][kx] === 1) {
-                                hits = true;
-                                break;
-                            }
-                        }
-                        const newPixelValue = hits ? 1 : 0;
-                        dilatedGrid[y][x] = newPixelValue;
-                        rdctx.fillStyle = newPixelValue ? '#e2e8f0' : '#1e293b';
-                        rdctx.fillRect(x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
-                        await new Promise(r => setTimeout(r, 25));
-                    }
-                }
-                currentGrid = dilatedGrid;
-                await new Promise(r => setTimeout(r, 400));
-
-                // --- EROSION PASS ---
-                resultGridTitle.textContent = `Eroding... (Pass ${iter + 1})`;
-                const erodedGrid = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0));
+                const size = parseInt(kernelSize.value, 10);
+                const r = Math.floor(size / 2);
 
                 for (let y = 0; y < GRID_SIZE; y++) {
                     for (let x = 0; x < GRID_SIZE; x++) {
                         hoverPos = { x, y };
                         drawDemoGrid(currentGrid);
-                        const size = parseInt(seSize.value, 10);
-                        const { ker } = buildKernel(seShape.value, size);
-                        let fits = true;
-                        for (const k of ker) {
-                            const kx = x + k.dx;
-                            const ky = y + k.dy;
-                            if (kx < 0 || kx >= GRID_SIZE || ky < 0 || ky >= GRID_SIZE || currentGrid[ky][kx] === 0) {
-                                fits = false;
-                                break;
+                        
+                        let weightedSum = 0;
+                        for (let j = -r; j <= r; j++) {
+                            for (let i = -r; i <= r; i++) {
+                                const kx = x + i;
+                                const ky = y + j;
+                                if (kx >= 0 && kx < GRID_SIZE && ky >= 0 && ky < GRID_SIZE) {
+                                    const weight = currentKernel[j + r][i + r];
+                                    weightedSum += currentGrid[ky][kx] * weight;
+                                }
                             }
                         }
-                        const newPixelValue = (currentGrid[y][x] && fits) ? 1 : 0;
-                        erodedGrid[y][x] = newPixelValue;
-                        rdctx.fillStyle = newPixelValue ? '#e2e8f0' : '#1e293b';
+                        nextGrid[y][x] = weightedSum;
+
+                        const resultValue = Math.round(Math.max(0, Math.min(1, weightedSum)) * 255);
+                        rdctx.fillStyle = `rgb(${resultValue}, ${resultValue}, ${resultValue})`;
                         rdctx.fillRect(x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
-                        await new Promise(r => setTimeout(r, 25));
+                        await new Promise(r => setTimeout(r, 10));
                     }
                 }
-                currentGrid = erodedGrid;
+                currentGrid = nextGrid;
                 if (iter < iterations - 1) {
                     await new Promise(r => setTimeout(r, 400));
                 }
@@ -370,7 +367,7 @@
             demoCanvas.style.cursor = 'pointer';
             hoverPos = null;
             resultGridTitle.textContent = 'Result Grid';
-            drawDemoGrid(currentGrid); // Show final hover state on the original grid
+            drawDemoGrid(currentGrid);
         });
 
         resetGrid.addEventListener('click', () => {
@@ -380,44 +377,45 @@
         });
 
         function renderKernel() {
-            const size = parseInt(seSize.value, 10);
-            const { r } = buildKernel(seShape.value, size);
-            const cells = (r * 2) + 1;
+            const size = parseInt(kernelSize.value, 10);
+            const sigma = parseFloat(kernelSigma.value);
+            currentKernel = generateGaussianKernel(size, sigma);
+
             const pad = 10;
-            const cellSize = Math.floor((kernelCanvas.width - pad * 2) / cells);
+            const cellSize = Math.floor((kernelCanvas.width - pad * 2) / size);
             kctx.fillStyle = '#0f172a';
             kctx.fillRect(0, 0, kernelCanvas.width, kernelCanvas.height);
 
-            for (let y = -r; y <= r; y++) {
-                for (let x = -r; x <= r; x++) {
-                    const cx = pad + (x + r) * cellSize;
-                    const cy = pad + (y + r) * cellSize;
-                    kctx.fillStyle = '#1f2937';
+            const maxWeight = currentKernel[Math.floor(size/2)][Math.floor(size/2)];
+
+            for (let y = 0; y < size; y++) {
+                for (let x = 0; x < size; x++) {
+                    const cx = pad + x * cellSize;
+                    const cy = pad + y * cellSize;
+                    const weight = currentKernel[y][x];
+                    const intensity = Math.round((weight / maxWeight) * 255);
+                    
+                    kctx.fillStyle = `rgb(${intensity}, ${intensity}, ${intensity})`;
                     kctx.fillRect(cx, cy, cellSize - 2, cellSize - 2);
-                    let inSE = false;
-                    if (seShape.value === 'square') inSE = true;
-                    else if (seShape.value === 'cross') inSE = (x === 0 || y === 0);
-                    else if (seShape.value === 'disk') inSE = (x*x + y*y) <= r*r + 0.0001;
-                    if (inSE) {
-                        kctx.fillStyle = '#d946ef'; // fuchsia-500
-                        kctx.fillRect(cx + 3, cy + 3, cellSize - 8, cellSize - 8);
-                    }
                 }
             }
-            kctx.strokeStyle = '#eab308';
-            kctx.lineWidth = 2;
-            const ccx = pad + r * cellSize;
-            const ccy = pad + r * cellSize;
-            kctx.strokeRect(ccx + 1, ccy + 1, cellSize - 4, cellSize - 4);
         }
 
-        seSize.addEventListener('input', () => { sizeVal.textContent = seSize.value; renderKernel(); drawDemoGrid(); });
-        seShape.addEventListener('change', () => { renderKernel(); drawDemoGrid(); });
-        seIterations.addEventListener('input', () => { iterVal.textContent = seIterations.value; });
+        function updateAndRender() {
+            sizeVal.textContent = `${kernelSize.value}x${kernelSize.value}`;
+            sigmaVal.textContent = parseFloat(kernelSigma.value).toFixed(1);
+            iterVal.textContent = seIterations.value;
+            renderKernel();
+            drawDemoGrid();
+        }
+
+        kernelSize.addEventListener('input', updateAndRender);
+        kernelSigma.addEventListener('input', updateAndRender);
+        seIterations.addEventListener('input', updateAndRender);
 
         // Initialize
         initDemoGrid();
-        renderKernel();
+        updateAndRender();
     </script>
 
 </body>

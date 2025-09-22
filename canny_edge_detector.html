@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canny Edge Detector – Interactive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .canvas-container { position: relative; display: inline-block; }
+        .stage-canvas { width: 220px; height: 220px; }
+    </style>
+    <meta name="description" content="Interactive visualization of the Canny Edge Detection algorithm, showing all stages from Gaussian blur to hysteresis thresholding.">
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-rose-900 to-slate-900 text-white min-h-screen">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+        
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-rose-300 to-pink-400 bg-clip-text text-transparent">
+                Canny Edge Detector
+            </h1>
+            <p class="mt-4 text-lg text-slate-300 max-w-3xl mx-auto">
+                A multi-stage algorithm for detecting a wide range of edges while reducing noise and false positives.
+            </p>
+        </header>
+
+        <!-- Educational Section -->
+        <section class="mb-8 bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700">
+            <h2 class="text-2xl font-semibold text-sky-300 mb-4">The Four Stages of Canny</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-slate-300 text-sm">
+                <div class="bg-slate-900/70 p-4 rounded-lg border border-slate-700">
+                    <h3 class="font-bold text-slate-100 mb-1">1. Noise Reduction</h3>
+                    <p>First, a Gaussian blur is applied to the image to remove small-scale noise that could create false edges.</p>
+                </div>
+                <div class="bg-slate-900/70 p-4 rounded-lg border border-slate-700">
+                    <h3 class="font-bold text-slate-100 mb-1">2. Gradient Calculation</h3>
+                    <p>A Sobel filter is used to find the intensity gradient of the image, determining the magnitude (strength) and direction of edges.</p>
+                </div>
+                <div class="bg-slate-900/70 p-4 rounded-lg border border-slate-700">
+                    <h3 class="font-bold text-slate-100 mb-1">3. Non-Maximum Suppression</h3>
+                    <p>Edges are thinned by suppressing pixels that are not local maxima in the direction of their gradient. This results in sharp, 1-pixel-wide edges.</p>
+                </div>
+                <div class="bg-slate-900/70 p-4 rounded-lg border border-slate-700">
+                    <h3 class="font-bold text-slate-100 mb-1">4. Hysteresis Thresholding</h3>
+                    <p>Two thresholds are used. Pixels above the high threshold are "strong" edges. Pixels between the thresholds are "weak" edges, kept only if they connect to a strong edge.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Section -->
+        <section class="mb-8">
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                <!-- Input Grid & Controls -->
+                <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 flex flex-col items-center">
+                    <h3 class="text-xl font-semibold text-rose-400 mb-4">Input & Controls</h3>
+                    <div class="canvas-container mb-6">
+                        <canvas id="demoCanvas" width="330" height="330" class="border-2 border-slate-600 rounded-lg cursor-pointer"></canvas>
+                    </div>
+                    <div class="w-full space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-1">Gaussian Sigma (σ): <span id="sigmaVal" class="font-mono">1.4</span></label>
+                            <input id="sigma" type="range" min="0.5" max="3" step="0.1" value="1.4" class="w-full accent-cyan-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-1">Low Threshold: <span id="lowThreshVal" class="font-mono">20</span></label>
+                            <input id="lowThreshold" type="range" min="0" max="255" step="1" value="20" class="w-full accent-cyan-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-1">High Threshold: <span id="highThreshVal" class="font-mono">50</span></label>
+                            <input id="highThreshold" type="range" min="0" max="255" step="1" value="50" class="w-full accent-cyan-500">
+                        </div>
+                        <div class="flex space-x-2 pt-2">
+                            <button id="applyDetector" class="w-full px-3 py-2 bg-rose-600 hover:bg-rose-700 rounded text-sm transition-colors">Apply Canny Detector</button>
+                            <button id="resetGrid" class="w-full px-3 py-2 bg-slate-600 hover:bg-slate-700 rounded text-sm transition-colors">Reset Grid</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Result Stages -->
+                <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 xl:col-span-2">
+                    <h3 class="text-xl font-semibold text-rose-400 mb-4 text-center">Algorithm Stages</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div class="flex flex-col items-center">
+                            <h4 id="stage1Title" class="text-lg font-semibold text-slate-300 mb-2">1. Gaussian Blur</h4>
+                            <div class="canvas-container">
+                                <canvas id="stage1Canvas" class="stage-canvas border-2 border-slate-600 rounded-lg"></canvas>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <h4 id="stage2Title" class="text-lg font-semibold text-slate-300 mb-2">2. Gradient Magnitude</h4>
+                            <div class="canvas-container">
+                                <canvas id="stage2Canvas" class="stage-canvas border-2 border-slate-600 rounded-lg"></canvas>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <h4 id="stage3Title" class="text-lg font-semibold text-slate-300 mb-2">3. Non-Max Suppression</h4>
+                            <div class="canvas-container">
+                                <canvas id="stage3Canvas" class="stage-canvas border-2 border-slate-600 rounded-lg"></canvas>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <h4 id="stage4Title" class="text-lg font-semibold text-rose-300 mb-2">4. Final Edges</h4>
+                            <div class="canvas-container">
+                                <canvas id="stage4Canvas" class="stage-canvas border-2 border-rose-500 rounded-lg"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Back Button -->
+        <div class="text-center">
+            <button onclick="history.back()" class="bg-slate-700 hover:bg-slate-800 text-white font-bold py-3 px-8 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                ← Back to Gallery
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Canvas and Context Setup ---
+        const demoCanvas = document.getElementById('demoCanvas');
+        const dctx = demoCanvas.getContext('2d');
+        const stageCanvases = [
+            document.getElementById('stage1Canvas'),
+            document.getElementById('stage2Canvas'),
+            document.getElementById('stage3Canvas'),
+            document.getElementById('stage4Canvas')
+        ];
+        const stageCtxs = stageCanvases.map(c => c.getContext('2d'));
+        const stageTitles = [
+            document.getElementById('stage1Title'),
+            document.getElementById('stage2Title'),
+            document.getElementById('stage3Title'),
+            document.getElementById('stage4Title')
+        ];
+
+        // --- Controls ---
+        const applyDetector = document.getElementById('applyDetector');
+        const resetGrid = document.getElementById('resetGrid');
+        const sigmaSlider = document.getElementById('sigma');
+        const lowThreshSlider = document.getElementById('lowThreshold');
+        const highThreshSlider = document.getElementById('highThreshold');
+        const sigmaVal = document.getElementById('sigmaVal');
+        const lowThreshVal = document.getElementById('lowThreshVal');
+        const highThreshVal = document.getElementById('highThreshVal');
+
+        // --- Grid Logic ---
+        const GRID_SIZE = 30; // Use a slightly larger grid for more detail
+        const CELL_SIZE = demoCanvas.width / GRID_SIZE;
+        let gridState = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0));
+        let originalGridState = null;
+
+        function initDemoGrid() {
+            // Create a shape with both curved and straight edges
+            const center = Math.floor(GRID_SIZE / 2);
+            const radius = 8;
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    const dist = Math.sqrt((x - center)**2 + (y - center)**2);
+                    if (dist <= radius && x < center + radius / 2) {
+                        gridState[y][x] = 1;
+                    } else {
+                        gridState[y][x] = 0;
+                    }
+                }
+            }
+            originalGridState = JSON.parse(JSON.stringify(gridState));
+            drawDemoGrid();
+            stageCanvases.forEach((canvas, i) => {
+                stageCtxs[i].fillStyle = '#0f172a';
+                stageCtxs[i].fillRect(0, 0, canvas.width, canvas.height);
+            });
+        }
+
+        function drawDemoGrid() {
+            dctx.fillStyle = '#0f172a';
+            dctx.fillRect(0, 0, demoCanvas.width, demoCanvas.height);
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    dctx.fillStyle = gridState[y][x] ? '#e2e8f0' : '#1e293b';
+                    dctx.fillRect(x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+                }
+            }
+        }
+
+        function drawResultGrid(ctx, state, isFinal = false) {
+            const canvas = ctx.canvas;
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            const resultCellSize = canvas.width / GRID_SIZE;
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    const value = Math.round(state[y][x] * 255);
+                    if (isFinal) {
+                        ctx.fillStyle = value > 0 ? '#e2e8f0' : '#1e293b';
+                    } else {
+                        ctx.fillStyle = `rgb(${value}, ${value}, ${value})`;
+                    }
+                    ctx.fillRect(x * resultCellSize, y * resultCellSize, resultCellSize, resultCellSize);
+                }
+            }
+        }
+
+        // --- Canny Algorithm Implementation ---
+
+        function getPixel(grid, x, y) {
+            if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) return 0;
+            return grid[y][x];
+        }
+
+        async function gaussianBlur(inputGrid, sigma) {
+            stageTitles[0].textContent = '1. Blurring...';
+            const size = Math.max(3, 2 * Math.ceil(3 * sigma) + 1); // Kernel size based on sigma
+            const r = Math.floor(size / 2);
+            const kernel = Array(size).fill(0).map(() => Array(size).fill(0));
+            let sum = 0;
+
+            for (let y = -r; y <= r; y++) {
+                for (let x = -r; x <= r; x++) {
+                    const value = Math.exp(-(x * x + y * y) / (2 * sigma * sigma));
+                    kernel[y + r][x + r] = value;
+                    sum += value;
+                }
+            }
+            for (let y = 0; y < size; y++) {
+                for (let x = 0; x < size; x++) {
+                    kernel[y][x] /= sum;
+                }
+            }
+
+            const blurredGrid = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0));
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    let weightedSum = 0;
+                    for (let j = -r; j <= r; j++) {
+                        for (let i = -r; i <= r; i++) {
+                            weightedSum += getPixel(inputGrid, x + i, y + j) * kernel[j + r][i + r];
+                        }
+                    }
+                    blurredGrid[y][x] = weightedSum;
+                }
+            }
+            drawResultGrid(stageCtxs[0], blurredGrid);
+            await new Promise(r => setTimeout(r, 200));
+            stageTitles[0].textContent = '1. Gaussian Blur';
+            return blurredGrid;
+        }
+
+        async function sobel(inputGrid) {
+            stageTitles[1].textContent = '2. Finding Gradients...';
+            const magnitudes = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0));
+            const directions = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0));
+
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    const p = (i, j) => getPixel(inputGrid, x + i, y + j);
+                    const gx = (p(1, -1) + 2 * p(1, 0) + p(1, 1)) - (p(-1, -1) + 2 * p(-1, 0) + p(-1, 1));
+                    const gy = (p(-1, 1) + 2 * p(0, 1) + p(1, 1)) - (p(-1, -1) + 2 * p(0, -1) + p(1, -1));
+                    
+                    magnitudes[y][x] = Math.sqrt(gx * gx + gy * gy);
+                    directions[y][x] = Math.atan2(gy, gx);
+                }
+            }
+            
+            // Normalize magnitudes for display
+            let maxMag = 0;
+            magnitudes.forEach(row => row.forEach(val => { if (val > maxMag) maxMag = val; }));
+            if (maxMag > 0) {
+                const normalizedMagnitudes = magnitudes.map(row => row.map(val => val / maxMag));
+                drawResultGrid(stageCtxs[1], normalizedMagnitudes);
+            }
+
+            await new Promise(r => setTimeout(r, 200));
+            stageTitles[1].textContent = '2. Gradient Magnitude';
+            return { magnitudes, directions };
+        }
+
+        async function nonMaximumSuppression(magnitudes, directions) {
+            stageTitles[2].textContent = '3. Suppressing...';
+            const suppressed = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0));
+
+            for (let y = 1; y < GRID_SIZE - 1; y++) {
+                for (let x = 1; x < GRID_SIZE - 1; x++) {
+                    const angle = directions[y][x] * 180 / Math.PI;
+                    const mag = magnitudes[y][x];
+                    let q = 255, r = 255;
+
+                    // Quantize angle to 0, 45, 90, 135 degrees
+                    if ((0 <= angle && angle < 22.5) || (157.5 <= angle && angle <= 180)) { // 0 degrees
+                        q = magnitudes[y][x+1];
+                        r = magnitudes[y][x-1];
+                    } else if (22.5 <= angle && angle < 67.5) { // 45 degrees
+                        q = magnitudes[y+1][x-1];
+                        r = magnitudes[y-1][x+1];
+                    } else if (67.5 <= angle && angle < 112.5) { // 90 degrees
+                        q = magnitudes[y+1][x];
+                        r = magnitudes[y-1][x];
+                    } else if (112.5 <= angle && angle < 157.5) { // 135 degrees
+                        q = magnitudes[y-1][x-1];
+                        r = magnitudes[y+1][x+1];
+                    }
+
+                    if (mag >= q && mag >= r) {
+                        suppressed[y][x] = mag;
+                    } else {
+                        suppressed[y][x] = 0;
+                    }
+                }
+            }
+            
+            let maxSuppressed = 0;
+            suppressed.forEach(row => row.forEach(val => { if (val > maxSuppressed) maxSuppressed = val; }));
+            if (maxSuppressed > 0) {
+                const normalizedSuppressed = suppressed.map(row => row.map(val => val / maxSuppressed));
+                drawResultGrid(stageCtxs[2], normalizedSuppressed);
+            }
+
+            await new Promise(r => setTimeout(r, 200));
+            stageTitles[2].textContent = '3. Non-Max Suppression';
+            return suppressed;
+        }
+
+        async function hysteresis(suppressed, low, high) {
+            stageTitles[3].textContent = '4. Thresholding...';
+            const finalEdges = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0));
+            const strong = 255, weak = 75;
+
+            // Double thresholding
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    const mag = suppressed[y][x];
+                    if (mag >= high) finalEdges[y][x] = strong;
+                    else if (mag >= low) finalEdges[y][x] = weak;
+                }
+            }
+
+            // Edge tracking by hysteresis
+            for (let y = 1; y < GRID_SIZE - 1; y++) {
+                for (let x = 1; x < GRID_SIZE - 1; x++) {
+                    if (finalEdges[y][x] === weak) {
+                        let isConnected = false;
+                        for (let j = -1; j <= 1; j++) {
+                            for (let i = -1; i <= 1; i++) {
+                                if (finalEdges[y + j][x + i] === strong) {
+                                    isConnected = true;
+                                    break;
+                                }
+                            }
+                            if(isConnected) break;
+                        }
+                        if (isConnected) {
+                            finalEdges[y][x] = strong;
+                        } else {
+                            finalEdges[y][x] = 0;
+                        }
+                    }
+                }
+            }
+
+            // Final pass to ensure all weak pixels are resolved
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    if (finalEdges[y][x] > 0) finalEdges[y][x] = 1;
+                }
+            }
+
+            drawResultGrid(stageCtxs[3], finalEdges, true);
+            await new Promise(r => setTimeout(r, 200));
+            stageTitles[3].textContent = '4. Final Edges';
+            return finalEdges;
+        }
+
+        // --- Event Listeners ---
+
+        demoCanvas.addEventListener('click', (e) => {
+            const rect = demoCanvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            const gridX = Math.floor(mouseX / CELL_SIZE);
+            const gridY = Math.floor(mouseY / CELL_SIZE);
+
+            if (gridX >= 0 && gridX < GRID_SIZE && gridY >= 0 && gridY < GRID_SIZE) {
+                gridState[gridY][gridX] = 1 - gridState[gridY][gridX];
+                originalGridState[gridY][gridX] = gridState[gridY][gridX];
+                drawDemoGrid();
+            }
+        });
+
+        applyDetector.addEventListener('click', async () => {
+            const controls = [applyDetector, resetGrid, sigmaSlider, lowThreshSlider, highThreshSlider, demoCanvas];
+            controls.forEach(el => el.disabled = true);
+            demoCanvas.style.cursor = 'wait';
+
+            const sigma = parseFloat(sigmaSlider.value);
+            const lowThresh = parseFloat(lowThreshSlider.value);
+            const highThresh = parseFloat(highThreshSlider.value);
+
+            // Normalize thresholds based on max possible Sobel magnitude (which is ~4 for our binary images)
+            const maxMag = 4;
+            const lowNorm = (lowThresh / 255) * maxMag;
+            const highNorm = (highThresh / 255) * maxMag;
+
+            const blurred = await gaussianBlur(originalGridState, sigma);
+            const { magnitudes, directions } = await sobel(blurred);
+            const suppressed = await nonMaximumSuppression(magnitudes, directions);
+            const final = await hysteresis(suppressed, lowNorm, highNorm);
+
+            controls.forEach(el => el.disabled = false);
+            demoCanvas.style.cursor = 'pointer';
+        });
+
+        resetGrid.addEventListener('click', () => {
+            gridState = JSON.parse(JSON.stringify(originalGridState));
+            drawDemoGrid();
+            stageCanvases.forEach((canvas, i) => {
+                stageCtxs[i].fillStyle = '#0f172a';
+                stageCtxs[i].fillRect(0, 0, canvas.width, canvas.height);
+            });
+        });
+
+        sigmaSlider.addEventListener('input', () => sigmaVal.textContent = parseFloat(sigmaSlider.value).toFixed(1));
+        lowThreshSlider.addEventListener('input', () => {
+            lowThreshVal.textContent = lowThreshSlider.value;
+            if (parseInt(lowThreshSlider.value) > parseInt(highThreshSlider.value)) {
+                highThreshSlider.value = lowThreshSlider.value;
+                highThreshVal.textContent = highThreshSlider.value;
+            }
+        });
+        highThreshSlider.addEventListener('input', () => {
+            highThreshVal.textContent = highThreshSlider.value;
+            if (parseInt(highThreshSlider.value) < parseInt(lowThreshSlider.value)) {
+                lowThreshSlider.value = highThreshSlider.value;
+                lowThreshVal.textContent = lowThreshSlider.value;
+            }
+        });
+
+        // --- Initialize ---
+        initDemoGrid();
+
+    </script>
+
+</body>
+</html>

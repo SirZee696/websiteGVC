@@ -304,6 +304,17 @@
                         </a>
                     </div>
 
+                    <!-- Module: Gaussian Smoothing -->
+                    <div class="bg-white rounded-lg shadow-md p-6 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xl font-bold mb-2">Gaussian Smoothing</h3>
+                            <p class="text-gray-600 mb-6">A powerful blurring technique that uses a Gaussian function to average pixels. It's highly effective for reducing noise while preserving edge-like structures better than a simple mean filter.</p>
+                        </div>
+                        <a href="gaussian_smoothing.html" class="w-full text-center bg-yellow-500 text-white font-semibold py-3 rounded-lg hover:bg-yellow-600 transition-colors duration-300">
+                            Launch Interactive
+                        </a>
+                    </div>
+
                     <!-- Module 21: Image Convolution -->
                     <div class="bg-white rounded-lg shadow-md p-6 flex flex-col justify-between">
                         <div>
@@ -311,6 +322,56 @@
                             <p class="text-gray-600 mb-6">Apply a kernel to an image to perform operations like blurring, sharpening, and edge detection. Understand the fundamental operation behind many image processing filters.</p>
                         </div>
                         <a href="image_convolution.html" class="w-full text-center bg-sky-500 text-white font-semibold py-3 rounded-lg hover:bg-sky-600 transition-colors duration-300">
+                            Launch Interactive
+                        </a>
+                    </div>
+
+                    <!-- Module: Unsharp Filter -->
+                    <div class="bg-white rounded-lg shadow-md p-6 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xl font-bold mb-2">Unsharp Filter</h3>
+                            <p class="text-gray-600 mb-6">Sharpen an image by subtracting a blurred version of it from the original. This technique, known as unsharp masking, enhances edges and fine details.</p>
+                        </div>
+                        <a href="unsharp_filter.html" class="w-full text-center bg-indigo-500 text-white font-semibold py-3 rounded-lg hover:bg-indigo-600 transition-colors duration-300">
+                            Launch Interactive
+                        </a>
+                    </div>
+                 </div>
+            </section>
+
+            <!-- Feature Detection Section -->
+            <section class="mt-16">
+                 <h2 class="text-2xl font-semibold mb-6 text-gray-800 border-b pb-2 border-gray-200">Feature Detection</h2>
+                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Module: Robert Cross Detector -->
+                    <div class="bg-white rounded-lg shadow-md p-6 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xl font-bold mb-2">Robert Cross Detector</h3>
+                            <p class="text-gray-600 mb-6">A simple edge detection operator that uses a pair of 2x2 convolution kernels to approximate the gradient of an image. It's fast but sensitive to noise.</p>
+                        </div>
+                        <a href="robert_cross_detector.html" class="w-full text-center bg-lime-500 text-white font-semibold py-3 rounded-lg hover:bg-lime-600 transition-colors duration-300">
+                            Launch Interactive
+                        </a>
+                    </div>
+
+                    <!-- Module: Sobel Edge Detector -->
+                    <div class="bg-white rounded-lg shadow-md p-6 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xl font-bold mb-2">Sobel Edge Detector</h3>
+                            <p class="text-gray-600 mb-6">A popular edge detection algorithm that uses 3x3 kernels to emphasize horizontal and vertical edges. It's more robust to noise than the Robert Cross operator.</p>
+                        </div>
+                        <a href="sobel_edge_detector.html" class="w-full text-center bg-amber-500 text-white font-semibold py-3 rounded-lg hover:bg-amber-600 transition-colors duration-300">
+                            Launch Interactive
+                        </a>
+                    </div>
+
+                    <!-- Module: Canny Edge Detector -->
+                    <div class="bg-white rounded-lg shadow-md p-6 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xl font-bold mb-2">Canny Edge Detector</h3>
+                            <p class="text-gray-600 mb-6">A multi-stage algorithm to detect a wide range of edges. It involves noise reduction, finding gradients, non-maximum suppression, and hysteresis thresholding to produce clean, thin edges.</p>
+                        </div>
+                        <a href="canny_edge_detector.html" class="w-full text-center bg-rose-500 text-white font-semibold py-3 rounded-lg hover:bg-rose-600 transition-colors duration-300">
                             Launch Interactive
                         </a>
                     </div>

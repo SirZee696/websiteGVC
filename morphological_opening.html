@@ -371,8 +371,7 @@
             demoCanvas.style.cursor = 'pointer';
             hoverPos = null;
             resultGridTitle.textContent = 'Result Grid';
-            gridState = currentGrid; // Final state for hover
-            drawDemoGrid();
+            drawDemoGrid(currentGrid); // Show final hover state on the original grid
         });
 
         resetGrid.addEventListener('click', () => {
