@@ -72,9 +72,10 @@
                             <label class="block text-sm font-medium text-slate-300 mb-1">High Threshold: <span id="highThreshVal" class="font-mono">50</span></label>
                             <input id="highThreshold" type="range" min="0" max="255" step="1" value="50" class="w-full accent-cyan-500">
                         </div>
-                        <div class="flex space-x-2 pt-2">
-                            <button id="applyDetector" class="w-full px-3 py-2 bg-rose-600 hover:bg-rose-700 rounded text-sm transition-colors">Apply Canny Detector</button>
-                            <button id="resetGrid" class="w-full px-3 py-2 bg-slate-600 hover:bg-slate-700 rounded text-sm transition-colors">Reset Grid</button>
+                        <div class="grid grid-cols-2 gap-2 pt-2">
+                            <button id="applyDetector" class="col-span-2 px-3 py-2 bg-rose-600 hover:bg-rose-700 rounded text-sm transition-colors">Apply Canny Detector</button>
+                            <button id="addNoise" class="px-3 py-2 bg-purple-600 hover:bg-purple-700 rounded text-sm transition-colors">Add Noise</button>
+                            <button id="resetGrid" class="px-3 py-2 bg-slate-600 hover:bg-slate-700 rounded text-sm transition-colors">Reset Grid</button>
                         </div>
                     </div>
                 </div>
@@ -142,6 +143,7 @@
         // --- Controls ---
         const applyDetector = document.getElementById('applyDetector');
         const resetGrid = document.getElementById('resetGrid');
+        const addNoise = document.getElementById('addNoise');
         const sigmaSlider = document.getElementById('sigma');
         const lowThreshSlider = document.getElementById('lowThreshold');
         const highThreshSlider = document.getElementById('highThreshold');
@@ -156,13 +158,14 @@
         let originalGridState = null;
 
         function initDemoGrid() {
-            // Create a shape with both curved and straight edges
+            // Create a square shape
             const center = Math.floor(GRID_SIZE / 2);
-            const radius = 8;
+            const halfWidth = 8;
+            const start = center - halfWidth;
+            const end = center + halfWidth;
             for (let y = 0; y < GRID_SIZE; y++) {
                 for (let x = 0; x < GRID_SIZE; x++) {
-                    const dist = Math.sqrt((x - center)**2 + (y - center)**2);
-                    if (dist <= radius && x < center + radius / 2) {
+                    if (x >= start && x < end && y >= start && y < end) {
                         gridState[y][x] = 1;
                     } else {
                         gridState[y][x] = 0;
@@ -259,8 +262,8 @@
             for (let y = 0; y < GRID_SIZE; y++) {
                 for (let x = 0; x < GRID_SIZE; x++) {
                     const p = (i, j) => getPixel(inputGrid, x + i, y + j);
-                    const gx = (p(1, -1) + 2 * p(1, 0) + p(1, 1)) - (p(-1, -1) + 2 * p(-1, 0) + p(-1, 1));
-                    const gy = (p(-1, 1) + 2 * p(0, 1) + p(1, 1)) - (p(-1, -1) + 2 * p(0, -1) + p(1, -1));
+                    const gx = (p(1, -1) + 2 * p(1, 0) + p(1, 1)) - (p(-1, -1) + 2 * p(-1, 0) + p(-1, 1)); // Vertical
+                    const gy = (p(-1, 1) + 2 * p(0, 1) + p(1, 1)) - (p(-1, -1) + 2 * p(0, -1) + p(1, -1)); // Horizontal
                     
                     magnitudes[y][x] = Math.sqrt(gx * gx + gy * gy);
                     directions[y][x] = Math.atan2(gy, gx);
@@ -295,14 +298,14 @@
                         q = magnitudes[y][x+1];
                         r = magnitudes[y][x-1];
                     } else if (22.5 <= angle && angle < 67.5) { // 45 degrees
-                        q = magnitudes[y+1][x-1];
-                        r = magnitudes[y-1][x+1];
+                        q = magnitudes[y-1][x-1];
+                        r = magnitudes[y+1][x+1];
                     } else if (67.5 <= angle && angle < 112.5) { // 90 degrees
                         q = magnitudes[y+1][x];
                         r = magnitudes[y-1][x];
                     } else if (112.5 <= angle && angle < 157.5) { // 135 degrees
-                        q = magnitudes[y-1][x-1];
-                        r = magnitudes[y+1][x+1];
+                        q = magnitudes[y-1][x+1];
+                        r = magnitudes[y+1][x-1];
                     }
 
                     if (mag >= q && mag >= r) {
@@ -339,24 +342,31 @@
                 }
             }
 
-            // Edge tracking by hysteresis
-            for (let y = 1; y < GRID_SIZE - 1; y++) {
-                for (let x = 1; x < GRID_SIZE - 1; x++) {
-                    if (finalEdges[y][x] === weak) {
-                        let isConnected = false;
-                        for (let j = -1; j <= 1; j++) {
-                            for (let i = -1; i <= 1; i++) {
-                                if (finalEdges[y + j][x + i] === strong) {
-                                    isConnected = true;
-                                    break;
+            // Edge tracking by hysteresis using a stack-based flood fill
+            const stack = [];
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    if (finalEdges[y][x] === strong) {
+                        stack.push({x, y});
+                    }
+                }
+            }
+
+            while(stack.length > 0) {
+                const {x, y} = stack.pop();
+
+                for (let j = -1; j <= 1; j++) {
+                    for (let i = -1; i <= 1; i++) {
+                        if (i === 0 && j === 0) continue;
+
+                        const nx = x + i;
+                        const ny = y + j;
+
+                        if (nx >= 0 && nx < GRID_SIZE && ny >= 0 && ny < GRID_SIZE) {
+                            if (finalEdges[ny][nx] === weak) {
+                                finalEdges[ny][nx] = strong; // Promote weak to strong
+                                stack.push({x: nx, y: ny});
                                 }
-                            }
-                            if(isConnected) break;
-                        }
-                        if (isConnected) {
-                            finalEdges[y][x] = strong;
-                        } else {
-                            finalEdges[y][x] = 0;
                         }
                     }
                 }
@@ -365,7 +375,11 @@
             // Final pass to ensure all weak pixels are resolved
             for (let y = 0; y < GRID_SIZE; y++) {
                 for (let x = 0; x < GRID_SIZE; x++) {
-                    if (finalEdges[y][x] > 0) finalEdges[y][x] = 1;
+                    if (finalEdges[y][x] === strong) {
+                        finalEdges[y][x] = 1;
+                    } else {
+                        finalEdges[y][x] = 0;
+                    }
                 }
             }
 
@@ -389,6 +403,21 @@
                 originalGridState[gridY][gridX] = gridState[gridY][gridX];
                 drawDemoGrid();
             }
+        });
+
+        addNoise.addEventListener('click', () => {
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    const rand = Math.random();
+                    if (rand < 0.1) { // 10% chance for salt
+                        gridState[y][x] = 1;
+                    } else if (rand > 0.9) { // 10% chance for pepper
+                        gridState[y][x] = 0;
+                    }
+                }
+            }
+            originalGridState = JSON.parse(JSON.stringify(gridState));
+            drawDemoGrid();
         });
 
         applyDetector.addEventListener('click', async () => {
