@@ -181,6 +181,13 @@
             return kernel;
         }
 
+        function getPixel(grid, x, y) {
+            if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) {
+                return 0; // Pad with 0 for pixels outside the grid
+            }
+            return grid[y][x];
+        }
+
         // --- Demo Grid Logic ---
         const GRID_SIZE = 15;
         const CELL_SIZE = demoCanvas.width / GRID_SIZE;
@@ -330,27 +337,28 @@
             
             // --- Step 1: Blur the image ---
             resultGridTitle.textContent = `Blurring...`;
+            rdctx.fillStyle = '#0f172a'; // Clear result grid
+            rdctx.fillRect(0, 0, resultDemoCanvas.width, resultDemoCanvas.height);
             const blurredGrid = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0));
             const size = parseInt(kernelSize.value, 10);
             const r = Math.floor(size / 2);
 
             for (let y = 0; y < GRID_SIZE; y++) {
                 for (let x = 0; x < GRID_SIZE; x++) {
+                    hoverPos = { x, y };
+                    drawDemoGrid(currentGrid);
                     let weightedSum = 0;
                     for (let j = -r; j <= r; j++) {
                         for (let i = -r; i <= r; i++) {
-                            const kx = x + i;
-                            const ky = y + j;
-                            if (kx >= 0 && kx < GRID_SIZE && ky >= 0 && ky < GRID_SIZE) {
-                                const weight = currentKernel[j + r][i + r];
-                                weightedSum += currentGrid[ky][kx] * weight;
-                            }
+                            const weight = currentKernel[j + r][i + r];
+                            weightedSum += getPixel(currentGrid, x + i, y + j) * weight;
                         }
                     }
                     blurredGrid[y][x] = weightedSum;
+                    drawPixelOnResult(x, y, weightedSum);
+                    await new Promise(r => setTimeout(r, 10));
                 }
             }
-            drawResultGrid(blurredGrid);
             await new Promise(r => setTimeout(r, 800));
 
             // --- Step 2: Create and apply mask ---
@@ -369,9 +377,7 @@
                     const finalValue = originalValue + amount * mask;
                     finalGrid[y][x] = finalValue;
 
-                    const resultValue = Math.round(Math.max(0, Math.min(1, finalValue)) * 255);
-                    rdctx.fillStyle = `rgb(${resultValue}, ${resultValue}, ${resultValue})`;
-                    rdctx.fillRect(x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+                    drawPixelOnResult(x, y, finalValue);
                     await new Promise(r => setTimeout(r, 10));
                 }
             }
@@ -387,7 +393,13 @@
             gridState = JSON.parse(JSON.stringify(originalGridState));
             drawResultGrid(gridState);
             drawDemoGrid();
-        });
+        }); // This was the misplaced closing brace
+
+        function drawPixelOnResult(x, y, value) {
+            const resultValue = Math.round(Math.max(0, Math.min(1, value)) * 255);
+            rdctx.fillStyle = `rgb(${resultValue}, ${resultValue}, ${resultValue})`;
+            rdctx.fillRect(x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+        }
 
         function renderKernel() {
             const size = parseInt(kernelSize.value, 10);
