@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gaussian Curve – Interactive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+    <meta name="description" content="Interactive visualization of the Gaussian curve (bell curve) with adjustable mean and standard deviation (sigma).">
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-violet-900 to-slate-900 text-white min-h-screen flex items-center justify-center p-4">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-4xl bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700">
+        
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-violet-300 to-purple-400 bg-clip-text text-transparent">
+                The Gaussian Curver 1D form
+            </h1>
+            <p class="mt-4 text-lg text-slate-300 max-w-3xl mx-auto">
+                Also known as the "bell curve," this function is fundamental to statistics, probability, and many image processing algorithms like Gaussian blur.
+            </p>
+        </header>
+
+        <!-- Main Content -->
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Side: Explanation -->
+            <div class="lg:col-span-1 space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6">
+                    <div class="bg-slate-900/70 p-4 rounded-lg border border-slate-600">
+                        <h2 class="text-2xl font-semibold text-sky-300 mb-3">The Formula</h2>
+                        <p class="text-center text-lg font-mono text-cyan-300">
+                            G(x) = (1/(<span id="formula-sigma-1" class="text-yellow-300 font-bold">σ</span>√2π)) * e<sup>-((x-<span id="formula-mu" class="text-yellow-300 font-bold">μ</span>)²/(2<span id="formula-sigma-2" class="text-yellow-300 font-bold">σ</span>²))</sup>
+                        </p>
+                    </div>
+                    <!-- Controls -->
+                    <div class="bg-slate-900/70 p-4 rounded-lg border border-slate-600 space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-2">Mean (μ): <span id="meanVal" class="font-mono">0.0</span></label>
+                            <input id="meanSlider" type="range" min="-5" max="5" step="0.1" value="0" class="w-full accent-violet-500 cursor-pointer">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-2">Standard Deviation (σ): <span id="sigmaVal" class="font-mono">1.0</span></label>
+                            <input id="sigmaSlider" type="range" min="0.1" max="3" step="0.05" value="1.0" class="w-full accent-violet-500 cursor-pointer">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/70 p-4 rounded-lg border border-slate-600">
+                    <h2 class="text-2xl font-semibold text-emerald-300 mb-3">Parameters</h2>
+                    <ul class="space-y-3 text-slate-300">
+                        <li>
+                            <strong class="text-white">Mean (μ):</strong> Determines the center of the peak. It's the average value.
+                        </li>
+                        <li>
+                            <strong class="text-white">Standard Deviation (σ):</strong> Controls the "spread" or width of the curve. A smaller sigma results in a taller, narrower peak, while a larger sigma creates a shorter, wider curve.
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <!-- Right Side: Canvas -->
+            <div class="lg:col-span-2 flex justify-center">
+                <div class="space-y-8 w-full" style="max-width: 600px;">
+                    <div class="flex flex-col items-center justify-start">
+                <canvas id="curveCanvas" width="600" height="400" class="bg-slate-900 rounded-lg border-2 border-slate-700"></canvas>
+                <p class="text-sm text-slate-400 mt-2 text-center">The shaded areas represent one (darker) and two (lighter) standard deviations from the mean.</p>
+                <div class="bg-slate-900/70 p-4 rounded-lg border border-slate-600">
+                    <h2 class="text-2xl font-semibold text-amber-300 mb-3">Properties</h2>
+                    <ul class="space-y-3 text-slate-300 text-sm">
+                        <li>
+                            <strong class="text-white">Symmetry:</strong> The curve is perfectly symmetric around its mean (μ). The mean, median, and mode are all equal.
+                        </li>
+                        <li>
+                            <strong class="text-white">Total Area:</strong> The total area under the curve is always equal to 1, which is why it's a probability distribution.
+                        </li>
+                        <li><strong class="text-white">The 68-95-99.7 Rule:</strong> Roughly 68% of the data falls within one standard deviation (σ) of the mean, 95% within two, and 99.7% within three.</li>
+                    </ul>
+                </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Back Button -->
+        <div class="text-center mt-8">
+            <button onclick="history.back()" class="bg-slate-700 hover:bg-slate-800 text-white font-bold py-3 px-8 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                ← Back to Gallery
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // DOM Elements
+        const canvas = document.getElementById('curveCanvas');
+        const ctx = canvas.getContext('2d');
+        const meanSlider = document.getElementById('meanSlider');
+        const sigmaSlider = document.getElementById('sigmaSlider');
+        const meanVal = document.getElementById('meanVal');
+        const sigmaVal = document.getElementById('sigmaVal');
+        
+        // Formula elements
+        const formulaMu = document.getElementById('formula-mu');
+        const formulaSigma1 = document.getElementById('formula-sigma-1');
+        const formulaSigma2 = document.getElementById('formula-sigma-2');
+
+        // --- Gaussian Function ---
+        function gaussian(x, mu, sigma) {
+            const coefficient = 1 / (sigma * Math.sqrt(2 * Math.PI));
+            const exponent = -((x - mu) ** 2) / (2 * sigma ** 2);
+            return coefficient * Math.exp(exponent);
+        }
+
+        // --- Drawing Logic ---
+        function draw() {
+            const mu = parseFloat(meanSlider.value);
+            const sigma = parseFloat(sigmaSlider.value);
+
+            // Update UI labels
+            meanVal.textContent = mu.toFixed(1);
+            sigmaVal.textContent = sigma.toFixed(1);
+
+            // Update live formula values
+            formulaMu.textContent = mu.toFixed(1);
+            formulaSigma1.textContent = sigma.toFixed(1);
+            formulaSigma2.textContent = sigma.toFixed(1);
+
+            // Clear canvas
+            ctx.fillStyle = '#0f172a'; // slate-900
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Define graph properties
+            const padding = 40;
+            const plotWidth = canvas.width - 2 * padding;
+            const plotHeight = canvas.height - 2 * padding;
+            const xRange = 10; // e.g., from -5 to 5
+            const xScale = plotWidth / xRange;
+            
+            // Find max Y value for scaling (peak is at x=mu)
+            const maxY = gaussian(mu, mu, sigma);
+            const yScale = plotHeight / (maxY * 1.1); // Add 10% buffer
+
+            // --- Draw Axes ---
+            ctx.strokeStyle = '#475569'; // slate-600
+            ctx.lineWidth = 1;
+            
+            // Y-axis
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, canvas.height - padding);
+            ctx.stroke();
+            
+            // X-axis
+            ctx.beginPath();
+            ctx.moveTo(padding, canvas.height - padding);
+            ctx.lineTo(canvas.width - padding, canvas.height - padding);
+            ctx.stroke();
+
+            // Map graph x to canvas x
+            const mapX = (x) => padding + (x + xRange / 2) * xScale;
+
+            // --- Draw Shaded TWO Standard Deviations Area (Lighter) ---
+            ctx.fillStyle = 'rgba(139, 92, 246, 0.1)'; // Lighter violet
+            ctx.beginPath();
+            const startX2 = mu - (2 * sigma);
+            const endX2 = mu + (2 * sigma);
+            ctx.moveTo(mapX(startX2), canvas.height - padding);
+            for (let x = startX2; x <= endX2; x += 0.01) {
+                const y = gaussian(x, mu, sigma);
+                const canvasY = canvas.height - padding - (y * yScale);
+                ctx.lineTo(mapX(x), canvasY);
+            }
+            ctx.lineTo(mapX(endX2), canvas.height - padding);
+            ctx.closePath();
+            ctx.fill();
+
+            // --- Draw Shaded ONE Standard Deviation Area (Darker) ---
+            ctx.fillStyle = 'rgba(139, 92, 246, 0.2)'; // Darker violet-500 with alpha
+            ctx.beginPath();
+            const startX = mu - sigma;
+            const endX = mu + sigma;
+            
+            ctx.moveTo(mapX(startX), canvas.height - padding);
+            for (let x = startX; x <= endX; x += 0.01) {
+                const y = gaussian(x, mu, sigma);
+                const canvasY = canvas.height - padding - (y * yScale);
+                ctx.lineTo(mapX(x), canvasY);
+            }
+            ctx.lineTo(mapX(endX), canvas.height - padding);
+            ctx.closePath();
+            ctx.fill();
+
+            // --- Draw Curve ---
+            ctx.strokeStyle = '#a78bfa'; // violet-400
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+
+            for (let i = 0; i <= plotWidth; i++) {
+                const x = (i / xScale) - (xRange / 2);
+                const y = gaussian(x, mu, sigma);
+                
+                const canvasX = padding + i;
+                const canvasY = canvas.height - padding - (y * yScale);
+
+                if (i === 0) {
+                    ctx.moveTo(canvasX, canvasY);
+                } else {
+                    ctx.lineTo(canvasX, canvasY);
+                }
+            }
+            ctx.stroke();
+
+            // --- Draw Mean Line ---
+            const meanCanvasX = mapX(mu);
+            ctx.strokeStyle = '#f87171'; // red-400
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(meanCanvasX, padding);
+            ctx.lineTo(meanCanvasX, canvas.height - padding);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // --- Draw Labels ---
+            ctx.fillStyle = '#9ca3af'; // slate-400
+            ctx.font = '12px Inter';
+            ctx.textAlign = 'center';
+            ctx.fillText('0', padding + plotWidth / 2, canvas.height - padding + 15);
+            ctx.fillText((xRange / 2).toString(), canvas.width - padding, canvas.height - padding + 15);
+            ctx.fillText((-xRange / 2).toString(), padding, canvas.height - padding + 15);
+            
+            ctx.textAlign = 'right';
+            ctx.fillText(maxY.toFixed(2), padding - 8, padding);
+        }
+
+        // Event Listeners
+        meanSlider.addEventListener('input', draw);
+        sigmaSlider.addEventListener('input', draw);
+
+        // Initial Draw
+        draw();
+    </script>
+
+</body>
+</html>
